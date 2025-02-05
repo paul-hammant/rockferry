@@ -1,0 +1,94 @@
+syntax = "proto3";
+package controllerapi;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/eskpil/salmon/vm/controllerapi";
+
+enum WatchAction {
+    PUT = 0;
+    DELETE = 1;
+    ALL = 2;
+}
+
+// TODO: Add filtering, now all resources returned are those
+//       who are newly changed or created. The client has to
+//       filter based on the Resource.Status.Phase
+message WatchRequest {
+    string kind = 1;
+    optional string id = 2;
+    optional Owner owner = 3;
+    WatchAction action = 4;
+}
+
+message WatchResponse {
+    Resource resource = 1;
+}
+
+message ListRequest {
+    string kind = 1;
+    optional string id = 2;
+    optional Owner owner = 3;
+}
+
+message ListResponse {
+    repeated Resource resources = 1;
+}
+
+message PatchRequest {
+    string kind = 1;
+    optional string id = 2;
+    optional Owner owner = 3;
+    bytes patches = 4;
+}
+
+message PatchResponse {
+    bool ok = 1;
+}
+
+message CreateRequest {
+    // This allows clients to fill in their own ids for example. And saves a lot of pain.
+    // The controller will only validate the resource, append neccesary fields if not set,
+    // such as id.
+    Resource resource = 1;
+}
+
+message CreateResponse {
+
+}
+
+message DeleteRequest {
+    string kind = 1;
+    string id = 2;
+}
+
+message DeleteResponse {
+
+}
+
+service ControllerApi {
+    rpc Watch(WatchRequest) returns (stream WatchResponse);
+    rpc List(ListRequest) returns (ListResponse);
+    rpc Create(CreateRequest) returns (CreateResponse);
+    rpc Patch(PatchRequest) returns (PatchResponse);
+    rpc Delete(DeleteRequest) returns(DeleteResponse);
+}
+
+
+message Owner {
+    string kind = 1;
+    string id = 2;
+}
+
+message Status  {
+    string phase = 1;
+}
+
+message Resource {
+    string id = 1;
+    string kind = 2;
+    map<string, string> annotations = 3;
+    optional Owner owner = 4;
+    google.protobuf.Struct spec = 5;
+    Status status = 6;
+}
