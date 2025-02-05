@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/digitalocean/go-libvirt"
-	"github.com/eskpil/salmon/vm/pkg/rockferry"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/resource"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/spec"
-	"github.com/eskpil/salmon/vm/pkg/virtwrap/storagepool"
-	"github.com/eskpil/salmon/vm/pkg/virtwrap/storagevol"
+	"github.com/eskpil/rockferry/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/rockferry/resource"
+	"github.com/eskpil/rockferry/pkg/rockferry/spec"
+	"github.com/eskpil/rockferry/pkg/virtwrap/storagepool"
+	"github.com/eskpil/rockferry/pkg/virtwrap/storagevol"
 	"github.com/google/uuid"
 )
 

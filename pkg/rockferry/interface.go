@@ -3,9 +3,9 @@ package rockferry
 import (
 	"context"
 
-	"github.com/eskpil/salmon/vm/pkg/convert"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/resource"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/transport"
+	"github.com/eskpil/rockferry/pkg/convert"
+	"github.com/eskpil/rockferry/pkg/rockferry/resource"
+	"github.com/eskpil/rockferry/pkg/rockferry/transport"
 )
 
 type Interface[S any] struct {

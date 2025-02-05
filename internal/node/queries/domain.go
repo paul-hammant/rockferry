@@ -4,8 +4,8 @@ import (
 	"encoding/xml"
 
 	"github.com/digitalocean/go-libvirt"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/spec"
-	"github.com/eskpil/salmon/vm/pkg/virtwrap/domain"
+	"github.com/eskpil/rockferry/pkg/rockferry/spec"
+	"github.com/eskpil/rockferry/pkg/virtwrap/domain"
 	"github.com/google/uuid"
 )
 

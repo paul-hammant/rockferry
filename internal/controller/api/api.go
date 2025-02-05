@@ -3,7 +3,7 @@ package api
 import (
 	"time"
 
-	"github.com/eskpil/salmon/vm/controllerapi"
+	"github.com/eskpil/rockferry/controllerapi"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 

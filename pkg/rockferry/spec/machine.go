@@ -1,6 +1,6 @@
 package spec
 
-import "github.com/eskpil/salmon/vm/pkg/rockferry/resource"
+import "github.com/eskpil/rockferry/pkg/rockferry/resource"
 
 type MachineSpecInterface struct {
 	Mac   string `json:"mac"`

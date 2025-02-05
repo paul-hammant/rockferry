@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/eskpil/salmon/vm/internal/node"
-	"github.com/eskpil/salmon/vm/internal/node/config"
+	"github.com/eskpil/rockferry/internal/node"
+	"github.com/eskpil/rockferry/internal/node/config"
 	"gopkg.in/yaml.v2"
 )
 

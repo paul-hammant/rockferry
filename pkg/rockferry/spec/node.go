@@ -3,7 +3,7 @@ package spec
 import (
 	"time"
 
-	"github.com/eskpil/salmon/vm/pkg/rockferry/resource"
+	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 )
 
 type NodeSpec struct {

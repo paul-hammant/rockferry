@@ -1,10 +1,10 @@
 package rockferry
 
 import (
-	"github.com/eskpil/salmon/vm/controllerapi"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/resource"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/spec"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/transport"
+	"github.com/eskpil/rockferry/controllerapi"
+	"github.com/eskpil/rockferry/pkg/rockferry/resource"
+	"github.com/eskpil/rockferry/pkg/rockferry/spec"
+	"github.com/eskpil/rockferry/pkg/rockferry/transport"
 )
 
 type WatchAction = int

@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/eskpil/salmon/vm/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/spf13/cobra"
 )
 

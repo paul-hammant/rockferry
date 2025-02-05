@@ -3,11 +3,11 @@ package node
 import (
 	"context"
 
-	"github.com/eskpil/salmon/vm/internal/node/config"
-	"github.com/eskpil/salmon/vm/internal/node/tasks"
-	"github.com/eskpil/salmon/vm/pkg/rockferry"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/resource"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/status"
+	"github.com/eskpil/rockferry/internal/node/config"
+	"github.com/eskpil/rockferry/internal/node/tasks"
+	"github.com/eskpil/rockferry/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/rockferry/resource"
+	"github.com/eskpil/rockferry/pkg/rockferry/status"
 )
 
 type State struct {

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/eskpil/salmon/vm/controllerapi"
-	"github.com/eskpil/salmon/vm/internal/controller/models"
+	"github.com/eskpil/rockferry/controllerapi"
+	"github.com/eskpil/rockferry/internal/controller/models"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/google/uuid"
 	clientv3 "go.etcd.io/etcd/client/v3"

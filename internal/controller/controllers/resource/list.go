@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/eskpil/salmon/vm/internal/controller/controllers/common"
-	"github.com/eskpil/salmon/vm/internal/controller/db"
-	"github.com/eskpil/salmon/vm/internal/controller/models"
+	"github.com/eskpil/rockferry/internal/controller/controllers/common"
+	"github.com/eskpil/rockferry/internal/controller/db"
+	"github.com/eskpil/rockferry/internal/controller/models"
 	"github.com/labstack/echo/v4"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )

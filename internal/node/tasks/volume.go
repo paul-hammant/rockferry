@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/eskpil/salmon/vm/pkg/rockferry"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/resource"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/status"
+	"github.com/eskpil/rockferry/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/rockferry/resource"
+	"github.com/eskpil/rockferry/pkg/rockferry/status"
 )
 
 type SyncStorageVolumesTask struct {

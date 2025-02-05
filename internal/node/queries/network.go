@@ -4,9 +4,9 @@ import (
 	"encoding/xml"
 
 	"github.com/digitalocean/go-libvirt"
-	"github.com/eskpil/salmon/vm/pkg/rockferry"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/spec"
-	"github.com/eskpil/salmon/vm/pkg/virtwrap/network"
+	"github.com/eskpil/rockferry/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/rockferry/spec"
+	"github.com/eskpil/rockferry/pkg/virtwrap/network"
 )
 
 func listAllNetworks(c *libvirt.Libvirt) ([]libvirt.Network, error) {

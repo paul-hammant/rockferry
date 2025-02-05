@@ -3,7 +3,7 @@ package controllerapi;
 
 import "google/protobuf/struct.proto";
 
-option go_package = "github.com/eskpil/salmon/vm/controllerapi";
+option go_package = "github.com/eskpil/rockferry/controllerapi";
 
 enum WatchAction {
     PUT = 0;

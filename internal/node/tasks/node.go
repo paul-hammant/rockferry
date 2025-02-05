@@ -7,8 +7,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/eskpil/salmon/vm/pkg/rockferry"
-	"github.com/eskpil/salmon/vm/pkg/uname"
+	"github.com/eskpil/rockferry/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/uname"
 	"github.com/shirou/gopsutil/v3/cpu"
 )
 

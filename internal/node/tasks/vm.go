@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/eskpil/salmon/vm/pkg/mac"
-	"github.com/eskpil/salmon/vm/pkg/rockferry"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/resource"
-	"github.com/eskpil/salmon/vm/pkg/rockferry/spec"
+	"github.com/eskpil/rockferry/pkg/mac"
+	"github.com/eskpil/rockferry/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/rockferry/resource"
+	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/google/uuid"
 )
 

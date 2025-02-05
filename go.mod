@@ -1,6 +1,6 @@
-module github.com/eskpil/salmon/vm
+module github.com/eskpil/rockferry
 
-go 1.23.4
+go 1.23.5
 
 require (
 	github.com/digitalocean/go-libvirt v0.0.0-20250124203551-ab4e783fc40f
