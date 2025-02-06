@@ -96,7 +96,7 @@ func (c *Client) CreateDomain(id string, spec *spec.MachineSpec) error {
 		iface.MAC = new(domain.MAC)
 		iface.MAC.MAC = i.Mac
 		iface.Type = "network"
-		iface.Source.Network = "bridged-network"
+		iface.Source.Network = *i.Network
 		iface.Model = new(domain.Model)
 		iface.Model.Type = "virtio"
 
@@ -107,7 +107,6 @@ func (c *Client) CreateDomain(id string, spec *spec.MachineSpec) error {
 
 	vnc.Type = "vnc"
 	vnc.AutoPort = "yes"
-	vnc.Passwd.Value = "123"
 	vnc.Listen = new(domain.GraphicsListen)
 
 	vnc.Listen.Type = "address"

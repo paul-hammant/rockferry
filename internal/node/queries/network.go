@@ -5,6 +5,7 @@ import (
 
 	"github.com/digitalocean/go-libvirt"
 	"github.com/eskpil/rockferry/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/eskpil/rockferry/pkg/virtwrap/network"
 )
@@ -34,8 +35,13 @@ func completeNetwork(c *libvirt.Libvirt, unmappedNetwork libvirt.Network) (*rock
 		mapped.Spec.Ipv6 = false
 	}
 
+	mapped.Kind = resource.ResourceKindNetwork
+
 	mapped.Id = schema.Uuid
 	mapped.Spec.Mtu = uint64(schema.Mtu.Size)
+
+	mapped.Annotations = map[string]string{}
+	mapped.Annotations["origin"] = "sync"
 
 	mapped.Spec.Bridge.Name = schema.Bridge.Name
 	mapped.Spec.Bridge.Stp = schema.Bridge.Stp
