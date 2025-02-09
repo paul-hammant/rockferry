@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO: There are a lot more configuration options here which can be set.
 func (c *Client) CreateDomain(id string, spec *spec.MachineSpec) error {
 	schema := new(domain.Schema)
 

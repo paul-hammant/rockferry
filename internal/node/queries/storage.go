@@ -124,6 +124,7 @@ func (c *Client) QueryStorageVolumes() ([]*rockferry.StorageVolume, error) {
 }
 
 func (c *Client) QueryStoragePools() ([]*rockferry.StoragePool, error) {
+	// TODO: List active and inactive. Add a field to StoragePoolSpec saying whether it is active or inactive.
 	unmapped, _, err := c.v.ConnectListAllStoragePools(100, 0)
 	if err != nil {
 		return nil, err

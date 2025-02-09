@@ -69,34 +69,40 @@ func (t *TaskList) setResourcePhase(ctx context.Context, res *resource.Resource[
 	return err
 }
 
+func (t *TaskList) executeUnbound(ctx context.Context, task Task) {
+	if err := task.Execute(ctx, t.e); err != nil {
+		fmt.Println("failed to execute task", err)
+	}
+}
+
+func (t *TaskList) executeBound(ctx context.Context, task BoundTask) {
+	if err := t.setResourcePhase(ctx, task.Resource(), resource.PhaseCreating, ""); err != nil {
+		fmt.Println("could not set resource phase", err)
+		return
+	}
+
+	if err := task.Execute(ctx, t.e); err != nil {
+		if err := t.setResourcePhase(ctx, task.Resource(), resource.PhaseErrored, err.Error()); err != nil {
+			fmt.Println("could not set resource phase", err)
+			return
+		}
+	}
+
+	if err := t.setResourcePhase(ctx, task.Resource(), resource.PhaseCreated, ""); err != nil {
+		fmt.Println("could not set resource phase", err)
+		return
+	}
+}
 func (t *TaskList) Run(ctx context.Context) error {
 	for {
 		select {
 		case task := <-t.unboundTasks:
 			{
-				if err := task.Execute(ctx, t.e); err != nil {
-					fmt.Println("failed to execute task", err)
-				}
+				go t.executeUnbound(ctx, task)
 			}
 		case task := <-t.boundTasks:
 			{
-
-				if err := t.setResourcePhase(ctx, task.Resource(), resource.PhaseCreating, ""); err != nil {
-					fmt.Println("could not set resource phase", err)
-					continue
-				}
-
-				if err := task.Execute(ctx, t.e); err != nil {
-					if err := t.setResourcePhase(ctx, task.Resource(), resource.PhaseErrored, err.Error()); err != nil {
-						fmt.Println("could not set resource phase", err)
-						continue
-					}
-				}
-
-				if err := t.setResourcePhase(ctx, task.Resource(), resource.PhaseCreated, ""); err != nil {
-					fmt.Println("could not set resource phase", err)
-					continue
-				}
+				go t.executeBound(ctx, task)
 			}
 		}
 	}
