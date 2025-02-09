@@ -9,6 +9,7 @@ import (
 
 	"github.com/eskpil/rockferry/controllerapi"
 	"github.com/eskpil/rockferry/internal/controller/api"
+	"github.com/eskpil/rockferry/internal/controller"
 	"github.com/eskpil/rockferry/internal/controller/controllers/nodes"
 	"github.com/eskpil/rockferry/internal/controller/controllers/resource"
 	"github.com/eskpil/rockferry/internal/controller/db"
@@ -49,6 +50,10 @@ func main() {
 		runDb("salmon_vm.etcd")
 		wg.Done()
 	}(wg)
+
+	if err := controller.Initialize(); err != nil {
+		panic(err)
+	}
 
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {

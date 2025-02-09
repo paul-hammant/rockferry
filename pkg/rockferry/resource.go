@@ -1,6 +1,10 @@
 package rockferry
 
-import "google.golang.org/protobuf/types/known/structpb"
+import (
+	"encoding/json"
+
+	"google.golang.org/protobuf/types/known/structpb"
+)
 
 type ResourceKind = string
 
@@ -65,4 +69,8 @@ func (r *Resource[T]) Generic() *Resource[any] {
 		Spec:        &spec, // Store spec as interface{}
 		Status:      r.Status,
 	}
+}
+
+func (r *Resource[T]) Marshal() ([]byte, error) {
+	return json.Marshal(r)
 }

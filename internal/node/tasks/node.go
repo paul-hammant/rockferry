@@ -72,6 +72,10 @@ func (t *SyncNodeTask) Execute(ctx context.Context, e *Executor) error {
 	modified.Spec.Topology.Cores = cores
 	modified.Spec.Topology.Threads = threads
 
+	modified.Owner = new(rockferry.OwnerRef)
+	modified.Owner.Kind = rockferry.ResourceKindInstance
+	modified.Owner.Id = "self"
+
 	var info syscall.Sysinfo_t
 	err = syscall.Sysinfo(&info)
 	if err != nil {
