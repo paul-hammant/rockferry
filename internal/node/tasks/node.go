@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"syscall"
-	"time"
 
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/eskpil/rockferry/pkg/uname"
@@ -82,7 +81,7 @@ func (t *SyncNodeTask) Execute(ctx context.Context, e *Executor) error {
 		return err
 	}
 
-	modified.Spec.UpSince = time.Now().Add(-time.Duration(info.Uptime) * time.Second)
+	modified.Spec.Uptime = info.Uptime
 
 	modified.Spec.Topology.Memory = info.Totalram
 

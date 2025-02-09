@@ -6,5 +6,5 @@ export interface Node {
     active_machines: number;
     total_machines: number;
     topology: Topology;
-    up_since: string;
+    uptime: number;
 }

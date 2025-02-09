@@ -6,6 +6,7 @@ import {
     Container,
     TextField,
     Select,
+    Card,
 } from "@radix-ui/themes";
 import { MachineRequest } from "../../types/machinerequest";
 import { Form, Formik, FormikHelpers } from "formik";
@@ -188,251 +189,266 @@ export const CreateVmView: React.FC<unknown> = () => {
         <Box p="9">
             <Container size="1">
                 <Text size="8">Create vm</Text>
-                <Box pt="5">
-                    <Formik<VmCreateValues>
-                        initialValues={{
-                            name: "",
+                <Card mt="2">
+                    <Box pt="3">
+                        <Formik<VmCreateValues>
+                            initialValues={{
+                                name: "",
 
-                            disk_pool: "",
-                            disk_capacity: 0,
+                                disk_pool: "",
+                                disk_capacity: 0,
 
-                            network: "",
+                                network: "",
 
-                            cdrom_pool: "",
-                            cdrom_key: "",
+                                cdrom_pool: "",
+                                cdrom_key: "",
 
-                            threads: 0,
-                            cores: 0,
-                            memory: 0,
-                        }}
-                        onSubmit={(
-                            values,
-                            { setSubmitting }: FormikHelpers<VmCreateValues>,
-                        ) => {
-                            const machine_request_spec: MachineRequest = {
-                                name: values.name,
-                                topology: {
-                                    sockets: 1,
-                                    cores: parseInt(
-                                        values.cores as unknown as string,
-                                    ),
-                                    threads: parseInt(
-                                        values.threads as unknown as string,
-                                    ),
-                                    memory: convert(
-                                        values.memory,
-                                        Units.Gigabyte,
-                                        Units.Bytes,
-                                    ),
-                                },
-                                network: values.network,
-                                cdrom: {
-                                    key: values.cdrom_key,
-                                },
-                                disks: [
-                                    {
-                                        pool: values.disk_pool,
-                                        capacity: convert(
-                                            values.disk_capacity,
+                                threads: 0,
+                                cores: 0,
+                                memory: 0,
+                            }}
+                            onSubmit={(
+                                values,
+                                {
+                                    setSubmitting,
+                                }: FormikHelpers<VmCreateValues>,
+                            ) => {
+                                const machine_request_spec: MachineRequest = {
+                                    name: values.name,
+                                    topology: {
+                                        sockets: 1,
+                                        cores: parseInt(
+                                            values.cores as unknown as string,
+                                        ),
+                                        threads: parseInt(
+                                            values.threads as unknown as string,
+                                        ),
+                                        memory: convert(
+                                            values.memory,
                                             Units.Gigabyte,
                                             Units.Bytes,
                                         ),
                                     },
-                                ],
-                            };
+                                    network: values.network,
+                                    cdrom: {
+                                        key: values.cdrom_key,
+                                    },
+                                    disks: [
+                                        {
+                                            pool: values.disk_pool,
+                                            capacity: convert(
+                                                values.disk_capacity,
+                                                Units.Gigabyte,
+                                                Units.Bytes,
+                                            ),
+                                        },
+                                    ],
+                                };
 
-                            const input: CreateResourceInput = {
-                                annotations: new Map(),
-                                kind: ResourceKind.MachineRequest,
-                                owner_ref: {
-                                    id: id!,
-                                    kind: ResourceKind.Node,
-                                },
-                                spec: machine_request_spec,
-                            };
+                                const input: CreateResourceInput = {
+                                    annotations: new Map(),
+                                    kind: ResourceKind.MachineRequest,
+                                    owner_ref: {
+                                        id: id!,
+                                        kind: ResourceKind.Node,
+                                    },
+                                    spec: machine_request_spec,
+                                };
 
-                            mutate(input, {
-                                onSuccess: () => {
-                                    setSubmitting(false);
-                                    navigate(`/nodes/${id}`);
-                                },
-                            });
+                                mutate(input, {
+                                    onSuccess: () => {
+                                        setSubmitting(false);
+                                        navigate(`/nodes/${id}`);
+                                    },
+                                });
 
-                            console.log(values);
-                        }}
-                    >
-                        {({ setFieldValue, values }) => (
-                            <Form>
-                                <Box>
-                                    <Box pb="1">
-                                        <label htmlFor="name">Name</label>
-                                    </Box>
-                                    <TextField.Root
-                                        placeholder="vm1"
-                                        id="name"
-                                        name="name"
-                                        type="text"
-                                        onChange={(e) =>
-                                            setFieldValue(
-                                                "name",
-                                                e.target.value,
-                                            )
-                                        }
-                                    ></TextField.Root>
-                                </Box>
-                                <Box pt="5">
-                                    <Box pb="1">
-                                        <label htmlFor="capacity">Disk</label>
-                                    </Box>
-                                    <Flex justify="between" gap="2">
-                                        <Box width="50%">
-                                            <PoolSelect
-                                                nodeId={id!}
-                                                onChange={(v) =>
-                                                    setFieldValue(
-                                                        "disk_pool",
-                                                        v,
-                                                    )
-                                                }
-                                            />
+                                console.log(values);
+                            }}
+                        >
+                            {({ setFieldValue, values }) => (
+                                <Form>
+                                    <Box>
+                                        <Box pb="1">
+                                            <label htmlFor="name">Name</label>
                                         </Box>
-                                        <Box width="50%">
-                                            <TextField.Root
-                                                placeholder="30 GB"
-                                                id="capacity"
-                                                name="capacity"
-                                                type="number"
-                                                onChange={(e) =>
-                                                    setFieldValue(
-                                                        "disk_capacity",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                            ></TextField.Root>
-                                        </Box>
-                                    </Flex>
-                                </Box>
-                                <Box pt="3">
-                                    <Box pb="1">
-                                        <label htmlFor="capacity">Cdrom</label>
+                                        <TextField.Root
+                                            placeholder="vm1"
+                                            id="name"
+                                            name="name"
+                                            type="text"
+                                            onChange={(e) =>
+                                                setFieldValue(
+                                                    "name",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        ></TextField.Root>
                                     </Box>
-                                    <Flex justify="between" gap="2">
-                                        <Box width="50%">
-                                            <PoolSelect
-                                                nodeId={id!}
-                                                onChange={(v) =>
-                                                    setFieldValue(
-                                                        "cdrom_pool",
-                                                        v,
-                                                    )
-                                                }
-                                            />
+                                    <Box pt="5">
+                                        <Box pb="1">
+                                            <label htmlFor="capacity">
+                                                Disk
+                                            </label>
                                         </Box>
-                                        <Box width="50%">
-                                            {values.cdrom_pool ? (
-                                                <VolumeSelect
-                                                    poolId={values.cdrom_pool!}
+                                        <Flex justify="between" gap="2">
+                                            <Box width="50%">
+                                                <PoolSelect
+                                                    nodeId={id!}
                                                     onChange={(v) =>
                                                         setFieldValue(
-                                                            "cdrom_key",
+                                                            "disk_pool",
                                                             v,
                                                         )
                                                     }
                                                 />
-                                            ) : undefined}
-                                        </Box>
-                                    </Flex>
-                                </Box>
-                                <Box pt="5">
-                                    <Box pb="1">
-                                        <label htmlFor="capacity">
-                                            Topology
-                                        </label>
+                                            </Box>
+                                            <Box width="50%">
+                                                <TextField.Root
+                                                    placeholder="30 GB"
+                                                    id="capacity"
+                                                    name="capacity"
+                                                    type="number"
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "disk_capacity",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                ></TextField.Root>
+                                            </Box>
+                                        </Flex>
                                     </Box>
-                                    <Flex justify="between" gap="2">
-                                        <Box width="50%">
-                                            <TextField.Root
-                                                placeholder="Cores"
-                                                id="cores"
-                                                name="cores"
-                                                type="number"
-                                                onChange={(e) =>
-                                                    setFieldValue(
-                                                        "cores",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                            ></TextField.Root>
+                                    <Box pt="3">
+                                        <Box pb="1">
+                                            <label htmlFor="capacity">
+                                                Cdrom
+                                            </label>
                                         </Box>
-                                        <Box width="50%">
-                                            <TextField.Root
-                                                placeholder="Threads"
-                                                id="threads"
-                                                name="threads"
-                                                type="number"
-                                                onChange={(e) =>
-                                                    setFieldValue(
-                                                        "threads",
-                                                        e.target.value,
-                                                    )
-                                                }
-                                            ></TextField.Root>
+                                        <Flex justify="between" gap="2">
+                                            <Box width="50%">
+                                                <PoolSelect
+                                                    nodeId={id!}
+                                                    onChange={(v) =>
+                                                        setFieldValue(
+                                                            "cdrom_pool",
+                                                            v,
+                                                        )
+                                                    }
+                                                />
+                                            </Box>
+                                            <Box width="50%">
+                                                {values.cdrom_pool ? (
+                                                    <VolumeSelect
+                                                        poolId={
+                                                            values.cdrom_pool!
+                                                        }
+                                                        onChange={(v) =>
+                                                            setFieldValue(
+                                                                "cdrom_key",
+                                                                v,
+                                                            )
+                                                        }
+                                                    />
+                                                ) : undefined}
+                                            </Box>
+                                        </Flex>
+                                    </Box>
+                                    <Box pt="5">
+                                        <Box pb="1">
+                                            <label htmlFor="capacity">
+                                                Topology
+                                            </label>
                                         </Box>
-                                    </Flex>
-                                </Box>
-                                <Box pt="3">
-                                    <Box pb="1">
-                                        <label htmlFor="capacity">Memory</label>
+                                        <Flex justify="between" gap="2">
+                                            <Box width="50%">
+                                                <TextField.Root
+                                                    placeholder="Cores"
+                                                    id="cores"
+                                                    name="cores"
+                                                    type="number"
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "cores",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                ></TextField.Root>
+                                            </Box>
+                                            <Box width="50%">
+                                                <TextField.Root
+                                                    placeholder="Threads"
+                                                    id="threads"
+                                                    name="threads"
+                                                    type="number"
+                                                    onChange={(e) =>
+                                                        setFieldValue(
+                                                            "threads",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                ></TextField.Root>
+                                            </Box>
+                                        </Flex>
                                     </Box>
-                                    <TextField.Root
-                                        placeholder="4 GB"
-                                        id="memory"
-                                        name="memory"
-                                        type="number"
-                                        onChange={(e) =>
-                                            setFieldValue(
-                                                "memory",
-                                                e.target.value,
-                                            )
-                                        }
-                                    ></TextField.Root>
-                                </Box>
-                                <Box pt="5">
-                                    <Box pb="1">
-                                        <label htmlFor="capacity">
-                                            Network
-                                        </label>
-                                    </Box>
-                                    <Flex justify="between" gap="2">
-                                        <NetworkSelect
-                                            nodeId={id!}
-                                            onChange={(v) =>
-                                                setFieldValue("network", v)
+                                    <Box pt="3">
+                                        <Box pb="1">
+                                            <label htmlFor="capacity">
+                                                Memory
+                                            </label>
+                                        </Box>
+                                        <TextField.Root
+                                            placeholder="4 GB"
+                                            id="memory"
+                                            name="memory"
+                                            type="number"
+                                            onChange={(e) =>
+                                                setFieldValue(
+                                                    "memory",
+                                                    e.target.value,
+                                                )
                                             }
-                                        />
+                                        ></TextField.Root>
+                                    </Box>
+                                    <Box pt="5">
+                                        <Box pb="1">
+                                            <label htmlFor="capacity">
+                                                Network
+                                            </label>
+                                        </Box>
+                                        <Flex justify="between" gap="2">
+                                            <NetworkSelect
+                                                nodeId={id!}
+                                                onChange={(v) =>
+                                                    setFieldValue("network", v)
+                                                }
+                                            />
+                                        </Flex>
+                                    </Box>
+                                    <Flex justify="end" pt="5">
+                                        <Button
+                                            color="red"
+                                            variant="soft"
+                                            type="button"
+                                            onClick={() =>
+                                                navigate(`/nodes/${id}`)
+                                            }
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            ml="3"
+                                            variant="solid"
+                                            color="purple"
+                                            type="submit"
+                                        >
+                                            Create
+                                        </Button>
                                     </Flex>
-                                </Box>
-                                <Flex justify="end" pt="5">
-                                    <Button
-                                        color="red"
-                                        variant="soft"
-                                        onClick={() => navigate(`/nodes/${id}`)}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        ml="3"
-                                        variant="solid"
-                                        color="purple"
-                                        type="submit"
-                                    >
-                                        Create
-                                    </Button>
-                                </Flex>
-                            </Form>
-                        )}
-                    </Formik>
-                </Box>
+                                </Form>
+                            )}
+                        </Formik>
+                    </Box>
+                </Card>
             </Container>
         </Box>
     );

@@ -12,7 +12,7 @@ import {
     Text,
 } from "@radix-ui/themes";
 import { PoolsView } from "./pools";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { VmsView } from "./vms";
 import { PieChart } from "@mui/x-charts";
 import { get } from "../../data/queries/get";
@@ -22,8 +22,47 @@ import { Node } from "../../types/node";
 import { Resource, ResourceKind } from "../../types/resource";
 import { CopyIcon } from "@radix-ui/react-icons";
 import { convert, Units } from "../../utils/conversion";
+import { Instance } from "../../types/instance";
+import { getUptime } from "../../utils/uptime";
+
+const Title: React.FC<{ node: Resource<Node> }> = ({ node }) => {
+    const navigate = useNavigate();
+
+    const instance = useQuery({
+        queryKey: ["instance"],
+        queryFn: () => get<Instance>(node.owner!.id!, node.owner!.kind!),
+    });
+
+    if (instance.isError) {
+        console.log(instance.error);
+        return <p>error</p>;
+    }
+
+    if (instance.isLoading) {
+        return <p>loading</p>;
+    }
+
+    return (
+        <Box>
+            <Text
+                className="hover:cursor-pointer"
+                color="purple"
+                onClick={() => navigate(`/`)}
+            >
+                <Text size="6">{instance.data?.spec?.name}</Text>
+            </Text>
+            <Text size="5" mr="1" ml="1">
+                /
+            </Text>
+            <Text size="6">{node.spec?.hostname}</Text>
+        </Box>
+    );
+};
 
 const NodeMetadata: React.FC<{ node: Resource<Node> }> = ({ node }) => {
+    const now = new Date();
+    const lastReboot = new Date(now.getTime() - node.spec!.uptime * 1000);
+
     return (
         <Card>
             <DataList.Root>
@@ -96,7 +135,14 @@ const NodeMetadata: React.FC<{ node: Resource<Node> }> = ({ node }) => {
                     <DataList.Label minWidth="88px">Last reboot</DataList.Label>
                     <DataList.Value>
                         <Text color="purple">
-                            {new Date(node.spec!.up_since).toLocaleString()}
+                            {lastReboot.toLocaleTimeString()}{" "}
+                            {lastReboot.toLocaleDateString()}
+                        </Text>
+                    </DataList.Value>
+                    <DataList.Label minWidth="88px">Uptime</DataList.Label>
+                    <DataList.Value>
+                        <Text color="purple">
+                            {getUptime(node.spec!.uptime!)}
                         </Text>
                     </DataList.Value>
                 </DataList.Item>
@@ -128,7 +174,7 @@ export const NodeView: React.FC<unknown> = () => {
 
     return (
         <Box p="9">
-            <Text size="8">{data.data?.spec?.hostname}</Text>
+            <Title node={data.data!} />
             <Box pt="3">
                 <Tabs.Root defaultValue={tab}>
                     <Tabs.List>
