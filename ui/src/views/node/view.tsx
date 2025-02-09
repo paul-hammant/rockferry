@@ -15,18 +15,15 @@ import { PoolsView } from "./pools";
 import { useParams } from "react-router";
 import { VmsView } from "./vms";
 import { PieChart } from "@mui/x-charts";
-import { getNode } from "../../data/queries/nodes";
+import { get } from "../../data/queries/get";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Node } from "../../types/node";
-import { Resource } from "../../types/resource";
+import { Resource, ResourceKind } from "../../types/resource";
 import { CopyIcon } from "@radix-ui/react-icons";
 import { convert, Units } from "../../utils/conversion";
 
 const NodeMetadata: React.FC<{ node: Resource<Node> }> = ({ node }) => {
-    console.log(typeof node.spec?.up_since);
-    console.log(node.spec?.up_since);
-
     return (
         <Card>
             <DataList.Root>
@@ -112,7 +109,7 @@ export const NodeView: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
     const data = useQuery({
         queryKey: ["nodes", id],
-        queryFn: () => getNode(id!),
+        queryFn: () => get<Node>(id!, ResourceKind.Node),
     });
 
     // TODO: This whole setup causes a full page reload?
@@ -175,7 +172,7 @@ export const NodeView: React.FC<unknown> = () => {
                         </Tabs.Content>
 
                         <Tabs.Content value="pools">
-                            <PoolsView id={id!} />
+                            <PoolsView nodeId={id!} />
                         </Tabs.Content>
                         <Tabs.Content value="networks">
                             <PieChart

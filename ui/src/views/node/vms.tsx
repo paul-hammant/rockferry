@@ -1,12 +1,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Badge, Box, IconButton, Table } from "@radix-ui/themes";
-import { getMachines } from "../../data/queries/machines";
+import { Badge, IconButton, Table } from "@radix-ui/themes";
+import { list } from "../../data/queries/list";
 import { useNavigate } from "react-router";
 import { convert, Units } from "../../utils/conversion";
 import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
 import { deleteMachine } from "../../data/mutations/machine";
 import { ResourceKind } from "../../types/resource";
 import { Card } from "@radix-ui/themes/src/index.js";
+import { Machine } from "../../types/machine";
 
 interface Props {
     id: string;
@@ -19,7 +20,8 @@ export const VmsView: React.FC<Props> = ({ id }) => {
 
     const data = useQuery({
         queryKey: [id, `machines`],
-        queryFn: () => getMachines(id),
+        queryFn: () =>
+            list<Machine>(ResourceKind.Machine, id, ResourceKind.Node),
     });
 
     const { mutate: deleteMutation } = useMutation({

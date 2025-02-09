@@ -11,13 +11,14 @@ import { MachineRequest } from "../../types/machinerequest";
 import { Form, Formik, FormikHelpers } from "formik";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router";
-import { getPools } from "../../data/queries/pools";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getVolumes } from "../../data/queries/volumes";
 import { createMachineRequest } from "../../data/mutations/machinerequest";
 import { convert, Units } from "../../utils/conversion";
 import { CreateResourceInput, ResourceKind } from "../../types/resource";
-import { getNetworks } from "../../data/queries/networks";
+import { list } from "../../data/queries/list";
+import { Pool } from "../../types/pool";
+import { Volume } from "../../types/volume";
+import { Network } from "../../types/network";
 
 const PoolSelect: React.FC<{
     nodeId: string;
@@ -25,7 +26,8 @@ const PoolSelect: React.FC<{
 }> = ({ nodeId, onChange }) => {
     const data = useQuery({
         queryKey: [nodeId, `pools`],
-        queryFn: () => getPools(nodeId),
+        queryFn: () =>
+            list<Pool>(ResourceKind.StoragePool, nodeId, ResourceKind.Node),
     });
 
     if (data.isError) {
@@ -70,7 +72,12 @@ const VolumeSelect: React.FC<{
 }> = ({ poolId, onChange }) => {
     const data = useQuery({
         queryKey: [poolId, `pools`],
-        queryFn: () => getVolumes(poolId),
+        queryFn: () =>
+            list<Volume>(
+                ResourceKind.StorageVolume,
+                poolId,
+                ResourceKind.StoragePool,
+            ),
     });
 
     if (data.isError) {
@@ -115,7 +122,8 @@ const NetworkSelect: React.FC<{
 }> = ({ nodeId, onChange }) => {
     const data = useQuery({
         queryKey: [nodeId, `networks`],
-        queryFn: () => getNetworks(nodeId),
+        queryFn: () =>
+            list<Network>(ResourceKind.Network, nodeId, ResourceKind.Node),
     });
 
     if (data.isError) {

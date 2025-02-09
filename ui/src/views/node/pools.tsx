@@ -1,21 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
-import { getPools } from "../../data/queries/pools";
-import { Badge, Box, Card, Table } from "@radix-ui/themes";
+import { list } from "../../data/queries/list";
+import { Badge, Card, Table } from "@radix-ui/themes";
 import { useNavigate } from "react-router";
 import { convert, Units } from "../../utils/conversion";
+import { ResourceKind } from "../../types/resource";
+import { Pool } from "../../types/pool";
 
 interface Props {
-    id: string;
+    nodeId: string;
 }
 
 // TODO: Add skeleton in table body for clean ui when loading
 
-export const PoolsView: React.FC<Props> = ({ id }) => {
+export const PoolsView: React.FC<Props> = ({ nodeId }) => {
     const navigate = useNavigate();
 
     const data = useQuery({
-        queryKey: [id, `pools`],
-        queryFn: () => getPools(id),
+        queryKey: [nodeId, `pools`],
+        queryFn: () =>
+            list<Pool>(ResourceKind.StoragePool, nodeId, ResourceKind.Node),
     });
 
     if (data.isError) {

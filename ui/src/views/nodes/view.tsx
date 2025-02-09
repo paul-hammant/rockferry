@@ -1,11 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { getNodes } from "../../data/queries/nodes";
+import { list } from "../../data/queries/list";
 import { Badge, Box, Table, Text } from "@radix-ui/themes";
 import { useNavigate } from "react-router";
+import { ResourceKind } from "../../types/resource";
+import { Node } from "../../types/node";
 
 export const NodesView: React.FC<unknown> = () => {
     const navigate = useNavigate();
-    const nodes = useQuery({ queryKey: ["nodes"], queryFn: getNodes });
+    const nodes = useQuery({
+        queryKey: ["nodes"],
+        queryFn: () =>
+            list<Node>(ResourceKind.Node, "self", ResourceKind.Instance),
+    });
 
     if (nodes.error) {
         return <div>Error fetching nodes</div>;
@@ -33,21 +39,6 @@ export const NodesView: React.FC<unknown> = () => {
                         {nodes.data?.list.map((node) => {
                             const color = "green";
 
-                            const annotations = new Map();
-
-                            Object.entries(node.annotations!).forEach(
-                                (annotation) => {
-                                    annotations.set(
-                                        annotation[0],
-                                        annotation[1],
-                                    );
-                                },
-                            );
-
-                            const url = annotations.get("node.url")!;
-
-                            console.log(annotations);
-
                             return (
                                 <Table.Row
                                     key={node.id}
@@ -63,7 +54,7 @@ export const NodesView: React.FC<unknown> = () => {
                                     <Table.RowHeaderCell>
                                         {node.spec!.hostname}
                                     </Table.RowHeaderCell>
-                                    <Table.Cell>{url}</Table.Cell>
+                                    <Table.Cell>placeholder</Table.Cell>
                                     <Table.Cell>
                                         <Badge color="green">
                                             {node.spec!.active_machines}

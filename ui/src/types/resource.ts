@@ -5,6 +5,7 @@ export enum ResourceKind {
     Network = "network",
     Machine = "machine",
     MachineRequest = "machinerequest",
+    Instance = "instance",
 }
 
 export enum Phase {
@@ -15,13 +16,13 @@ export enum Phase {
 }
 
 export interface OwnerRef {
-    kind: string;
+    kind: ResourceKind;
     id: string;
 }
 
 export interface Resource<T> {
     id: string;
-    kind: string;
+    kind: ResourceKind;
     annotations: Record<string, string> | undefined;
     owner: OwnerRef | undefined;
     spec: T | undefined;

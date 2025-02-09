@@ -11,7 +11,6 @@ import {
 } from "@radix-ui/themes";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
-import { getVolumes } from "../../data/queries/volumes";
 import { Field, Form, Formik, FormikHelpers } from "formik";
 import { convert, Units } from "../../utils/conversion";
 import { createVolume } from "../../data/mutations/volumes";
@@ -20,10 +19,12 @@ import {
     Resource,
     ResourceKind,
 } from "../../types/resource";
-import { getPool } from "../../data/queries/pools";
+import { list } from "../../data/queries/list";
 import { Pool } from "../../types/pool";
-import { getNode } from "../../data/queries/nodes";
+import { get } from "../../data/queries/get";
 import { useNavigate } from "react-router";
+import { Node } from "../../types/node";
+import { Volume } from "../../types/volume";
 
 interface CreateVolumeValues {
     name: string;
@@ -37,7 +38,7 @@ const Title: React.FC<{ pool: Resource<Pool> }> = ({ pool }) => {
 
     const node = useQuery({
         queryKey: ["nodes", pool.owner?.id],
-        queryFn: () => getNode(pool.owner!.id!),
+        queryFn: () => get<Node>(pool.owner!.id!, pool.owner!.kind!),
     });
 
     if (node.isError) {
@@ -71,12 +72,17 @@ export const PoolView: React.FC<unknown> = () => {
 
     const pool = useQuery({
         queryKey: ["pools", id],
-        queryFn: () => getPool(id!),
+        queryFn: () => get<Pool>(id!, ResourceKind.StoragePool),
     });
 
     const volumes = useQuery({
         queryKey: [id, `volumes`],
-        queryFn: () => getVolumes(id!),
+        queryFn: () =>
+            list<Volume>(
+                ResourceKind.StorageVolume,
+                id!,
+                ResourceKind.StoragePool,
+            ),
     });
 
     const { mutate } = useMutation({ mutationFn: createVolume });
