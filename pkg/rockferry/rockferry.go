@@ -2,9 +2,7 @@ package rockferry
 
 import (
 	"github.com/eskpil/rockferry/controllerapi"
-	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
-	"github.com/eskpil/rockferry/pkg/rockferry/transport"
 )
 
 type WatchAction = int
@@ -15,16 +13,17 @@ const (
 	WatchActionAll
 )
 
-type MachineRequest = resource.Resource[spec.MachineRequestSpec]
-type StorageVolume = resource.Resource[spec.StorageVolumeSpec]
-type StoragePool = resource.Resource[spec.StoragePoolSpec]
-type Node = resource.Resource[spec.NodeSpec]
-type Network = resource.Resource[spec.NetworkSpec]
-type Machine = resource.Resource[spec.MachineSpec]
+type MachineRequest = Resource[spec.MachineRequestSpec]
+type StorageVolume = Resource[spec.StorageVolumeSpec]
+type StoragePool = Resource[spec.StoragePoolSpec]
+type Node = Resource[spec.NodeSpec]
+type Network = Resource[spec.NetworkSpec]
+type Machine = Resource[spec.MachineSpec]
+type Instance = Resource[spec.InstanceSpec]
 
 type Client struct {
 	c *controllerapi.ControllerApiClient
-	t *transport.Transport
+	t *Transport
 
 	nodesv1            *Interface[spec.NodeSpec]
 	storagevolumesv1   *Interface[spec.StorageVolumeSpec]
@@ -32,21 +31,23 @@ type Client struct {
 	machinesrequestsv1 *Interface[spec.MachineRequestSpec]
 	networksv1         *Interface[spec.NetworkSpec]
 	storagepoolsv1     *Interface[spec.StoragePoolSpec]
+	instancev1         *Interface[spec.InstanceSpec]
 }
 
 func New(url string) (*Client, error) {
-	transport, err := transport.New(url)
+	transport, err := NewTransport(url)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Client{
-		nodesv1:            NewInterface[spec.NodeSpec](resource.ResourceKindNode, transport),
-		storagevolumesv1:   NewInterface[spec.StorageVolumeSpec](resource.ResourceKindStorageVolume, transport),
-		machinesv1:         NewInterface[spec.MachineSpec](resource.ResourceKindMachine, transport),
-		machinesrequestsv1: NewInterface[spec.MachineRequestSpec](resource.ResourceKindMachineRequest, transport),
-		networksv1:         NewInterface[spec.NetworkSpec](resource.ResourceKindNetwork, transport),
-		storagepoolsv1:     NewInterface[spec.StoragePoolSpec](resource.ResourceKindStoragePool, transport),
+		nodesv1:            NewInterface[spec.NodeSpec](ResourceKindNode, transport),
+		storagevolumesv1:   NewInterface[spec.StorageVolumeSpec](ResourceKindStorageVolume, transport),
+		machinesv1:         NewInterface[spec.MachineSpec](ResourceKindMachine, transport),
+		machinesrequestsv1: NewInterface[spec.MachineRequestSpec](ResourceKindMachineRequest, transport),
+		networksv1:         NewInterface[spec.NetworkSpec](ResourceKindNetwork, transport),
+		storagepoolsv1:     NewInterface[spec.StoragePoolSpec](ResourceKindStoragePool, transport),
+		instancev1:         NewInterface[spec.InstanceSpec](ResourceKindInstance, transport),
 
 		t: transport,
 	}, nil
@@ -60,7 +61,7 @@ func (c *Client) StorageVolumes() *Interface[spec.StorageVolumeSpec] {
 	return c.storagevolumesv1
 }
 
-func (c *Client) Generic(kind resource.ResourceKind) *Interface[any] {
+func (c *Client) Generic(kind ResourceKind) *Interface[any] {
 	return NewInterface[any](kind, c.t)
 }
 
@@ -78,4 +79,8 @@ func (c *Client) Networks() *Interface[spec.NetworkSpec] {
 
 func (c *Client) StoragePools() *Interface[spec.StoragePoolSpec] {
 	return c.storagepoolsv1
+}
+
+func (c *Client) Resource() *Interface[spec.InstanceSpec] {
+	return c.instancev1
 }

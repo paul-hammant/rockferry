@@ -2,12 +2,10 @@ package spec
 
 import (
 	"time"
-
-	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 )
 
 type NodeSpec struct {
-	Topology resource.Topology `json:"topology"`
+	Topology Topology `json:"topology"`
 
 	Hostname string    `json:"hostname"`
 	Kernel   string    `json:"kernel"`

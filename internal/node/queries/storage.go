@@ -6,7 +6,6 @@ import (
 
 	"github.com/digitalocean/go-libvirt"
 	"github.com/eskpil/rockferry/pkg/rockferry"
-	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/eskpil/rockferry/pkg/virtwrap/storagepool"
 	"github.com/eskpil/rockferry/pkg/virtwrap/storagevol"
@@ -100,14 +99,14 @@ func (c *Client) QueryStorageVolumes() ([]*rockferry.StorageVolume, error) {
 			volume := new(rockferry.StorageVolume)
 
 			volume.Id = fmt.Sprintf("%s/%s", poolId.String(), name)
-			volume.Owner = new(resource.OwnerRef)
+			volume.Owner = new(rockferry.OwnerRef)
 			volume.Annotations = map[string]string{}
 			volume.Annotations["origin"] = "sync"
 
-			volume.Owner.Kind = resource.ResourceKindStoragePool
+			volume.Owner.Kind = rockferry.ResourceKindStoragePool
 			volume.Owner.Id = poolId.String()
-			volume.Kind = resource.ResourceKindStorageVolume
-			volume.Status.Phase = resource.PhaseCreated
+			volume.Kind = rockferry.ResourceKindStorageVolume
+			volume.Status.Phase = rockferry.PhaseCreated
 
 			volumeSpec, err := c.QueryVolumeSpec(pool.Name, name)
 			if err != nil {
@@ -178,13 +177,13 @@ func (c *Client) QueryStoragePools() ([]*rockferry.StoragePool, error) {
 		res := new(rockferry.StoragePool)
 
 		res.Id = xmlSchema.Uuid
-		res.Owner = new(resource.OwnerRef)
-		res.Owner.Kind = resource.ResourceKindNode
+		res.Owner = new(rockferry.OwnerRef)
+		res.Owner.Kind = rockferry.ResourceKindNode
 
 		res.Spec = *storagePoolSpec
 
-		res.Kind = resource.ResourceKindStoragePool
-		res.Status.Phase = resource.PhaseCreated
+		res.Kind = rockferry.ResourceKindStoragePool
+		res.Status.Phase = rockferry.PhaseCreated
 
 		out = append(out, res)
 	}

@@ -1,4 +1,4 @@
-package transport
+package rockferry
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/eskpil/rockferry/controllerapi"
 	"github.com/eskpil/rockferry/pkg/convert"
-	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 	rstatus "github.com/eskpil/rockferry/pkg/rockferry/status"
 	"github.com/snorwin/jsonpatch"
 	"google.golang.org/grpc"
@@ -20,7 +19,7 @@ type Transport struct {
 	client controllerapi.ControllerApiClient
 }
 
-func New(url string) (*Transport, error) {
+func NewTransport(url string) (*Transport, error) {
 	t := new(Transport)
 
 	cc, err := grpc.NewClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -36,7 +35,7 @@ func (t *Transport) C() controllerapi.ControllerApiClient {
 	return t.client
 }
 
-func (t *Transport) Watch(ctx context.Context, action int, kind resource.ResourceKind, id string, owner *resource.OwnerRef) (chan *resource.Resource[interface{}], error) {
+func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id string, owner *OwnerRef) (chan *Resource[interface{}], error) {
 	api := t.C()
 
 	// Create the initial watch request
@@ -50,7 +49,7 @@ func (t *Transport) Watch(ctx context.Context, action int, kind resource.Resourc
 	req.Action = controllerapi.WatchAction(action)
 
 	// Create the channel to send updates
-	out := make(chan *resource.Resource[any])
+	out := make(chan *Resource[any])
 
 	// Function to start watching and handle reconnection
 	var watch func() error
@@ -90,18 +89,18 @@ func (t *Transport) Watch(ctx context.Context, action int, kind resource.Resourc
 
 					// Process the resource
 					unmapped := res.Resource
-					mapped := new(resource.Resource[any])
+					mapped := new(Resource[any])
 
 					// Map the resource
 					mapped.Id = unmapped.Id
-					mapped.Kind = resource.ResourceKind(unmapped.Kind)
+					mapped.Kind = ResourceKind(unmapped.Kind)
 
-					mapped.Owner = new(resource.OwnerRef)
+					mapped.Owner = new(OwnerRef)
 					mapped.Owner.Id = unmapped.Owner.Id
 					mapped.Owner.Kind = unmapped.Owner.Kind
 
 					mapped.Annotations = unmapped.Annotations
-					mapped.Status.Phase = resource.Phase(unmapped.Status.Phase)
+					mapped.Status.Phase = Phase(unmapped.Status.Phase)
 
 					mapped.RawSpec = unmapped.Spec
 
@@ -126,7 +125,7 @@ func (t *Transport) Watch(ctx context.Context, action int, kind resource.Resourc
 	return out, nil
 }
 
-func (t *Transport) Patch(ctx context.Context, original *resource.Resource[any], modified *resource.Resource[any]) error {
+func (t *Transport) Patch(ctx context.Context, original *Resource[any], modified *Resource[any]) error {
 	api := t.C()
 
 	patch, err := jsonpatch.CreateJSONPatch(modified, original)
@@ -160,7 +159,7 @@ func (t *Transport) Patch(ctx context.Context, original *resource.Resource[any],
 	return nil
 }
 
-func (t *Transport) List(ctx context.Context, kind resource.ResourceKind, id string, owner *resource.OwnerRef) ([]*resource.Resource[any], error) {
+func (t *Transport) List(ctx context.Context, kind ResourceKind, id string, owner *OwnerRef) ([]*Resource[any], error) {
 	api := t.C()
 
 	req := new(controllerapi.ListRequest)
@@ -185,20 +184,20 @@ func (t *Transport) List(ctx context.Context, kind resource.ResourceKind, id str
 		return nil, err
 	}
 
-	list := make([]*resource.Resource[any], len(response.Resources))
+	list := make([]*Resource[any], len(response.Resources))
 
 	for i, unmapped := range response.Resources {
-		mapped := new(resource.Resource[any])
+		mapped := new(Resource[any])
 
 		mapped.Id = unmapped.Id
-		mapped.Kind = resource.ResourceKind(unmapped.Kind)
+		mapped.Kind = ResourceKind(unmapped.Kind)
 		if unmapped.Owner != nil {
-			mapped.Owner = new(resource.OwnerRef)
+			mapped.Owner = new(OwnerRef)
 			mapped.Owner.Id = unmapped.Owner.Id
 			mapped.Owner.Kind = unmapped.Owner.Kind
 		}
 		mapped.Annotations = unmapped.Annotations
-		mapped.Status.Phase = resource.Phase(unmapped.Status.Phase)
+		mapped.Status.Phase = Phase(unmapped.Status.Phase)
 		mapped.RawSpec = unmapped.GetSpec()
 
 		list[i] = mapped
@@ -208,7 +207,7 @@ func (t *Transport) List(ctx context.Context, kind resource.ResourceKind, id str
 	return list, nil
 }
 
-func (t *Transport) Create(ctx context.Context, in *resource.Resource[any]) error {
+func (t *Transport) Create(ctx context.Context, in *Resource[any]) error {
 	api := t.C()
 
 	req := new(controllerapi.CreateRequest)
@@ -238,7 +237,7 @@ func (t *Transport) Create(ctx context.Context, in *resource.Resource[any]) erro
 	return err
 }
 
-func (t *Transport) Delete(ctx context.Context, kind resource.ResourceKind, id string) error {
+func (t *Transport) Delete(ctx context.Context, kind ResourceKind, id string) error {
 	api := t.C()
 
 	req := new(controllerapi.DeleteRequest)

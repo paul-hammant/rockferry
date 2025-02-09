@@ -1,4 +1,4 @@
-package resource
+package rockferry
 
 import "google.golang.org/protobuf/types/known/structpb"
 
@@ -12,6 +12,7 @@ const (
 	ResourceKindNetwork        = "network"
 	ResourceKindMachine        = "machine"
 	ResourceKindMachineRequest = "machinerequest"
+	ResourceKindInstance       = "instance"
 )
 
 type Phase string
@@ -22,14 +23,6 @@ const (
 	PhaseErrored   = "errored"
 	PhaseCreated   = "created"
 )
-
-// Used by node and machine
-type Topology struct {
-	Sockets uint64 `json:"sockets"`
-	Cores   uint64 `json:"cores"`
-	Threads uint64 `json:"threads"`
-	Memory  uint64 `json:"memory"`
-}
 
 type Status struct {
 	Phase Phase   `json:"phase"`

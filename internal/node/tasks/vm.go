@@ -6,7 +6,6 @@ import (
 
 	"github.com/eskpil/rockferry/pkg/mac"
 	"github.com/eskpil/rockferry/pkg/rockferry"
-	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/google/uuid"
 )
@@ -46,17 +45,17 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 		out := new(rockferry.StorageVolume)
 
 		out.Id = fmt.Sprintf("%s/%s", pool.Id, name)
-		out.Kind = resource.ResourceKindStorageVolume
+		out.Kind = rockferry.ResourceKindStorageVolume
 
 		out.Annotations = map[string]string{}
 		out.Annotations["vm"] = vmId
 		out.Annotations["vm.name"] = t.Request.Spec.Name
 
 		out.Spec = *volumeSpec
-		out.Status.Phase = resource.PhaseCreated
-		out.Owner = new(resource.OwnerRef)
+		out.Status.Phase = rockferry.PhaseCreated
+		out.Owner = new(rockferry.OwnerRef)
 		out.Owner.Id = pool.Id
-		out.Owner.Kind = resource.ResourceKindStoragePool
+		out.Owner.Kind = rockferry.ResourceKindStoragePool
 
 		if err := executor.Rockferry.StorageVolumes().Create(ctx, out); err != nil {
 			panic(err)
@@ -154,25 +153,25 @@ func (t *CreateVirtualMachineTask) Execute(ctx context.Context, executor *Execut
 	res.Annotations["machinerequest.id"] = t.Request.Id
 
 	res.Id = vmId
-	res.Kind = resource.ResourceKindMachine
-	res.Owner = new(resource.OwnerRef)
+	res.Kind = rockferry.ResourceKindMachine
+	res.Owner = new(rockferry.OwnerRef)
 	// TODO: Do not hardcode this
 	res.Owner.Id = executor.NodeId
-	res.Owner.Kind = resource.ResourceKindNode
+	res.Owner.Kind = rockferry.ResourceKindNode
 
-	res.Status.Phase = resource.PhaseCreated
+	res.Status.Phase = rockferry.PhaseCreated
 
 	if err := executor.Libvirt.CreateDomain(vmId, spec); err != nil {
 		return err
 	}
 
 	res.Spec = *spec
-	res.Status.Phase = resource.PhaseCreated
+	res.Status.Phase = rockferry.PhaseCreated
 
 	return executor.Rockferry.Machines().Create(ctx, res)
 }
 
-func (t *CreateVirtualMachineTask) Resource() *resource.Resource[any] {
+func (t *CreateVirtualMachineTask) Resource() *rockferry.Resource[any] {
 	return t.Request.Generic()
 }
 

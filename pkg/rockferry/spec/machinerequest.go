@@ -1,7 +1,5 @@
 package spec
 
-import "github.com/eskpil/rockferry/pkg/rockferry/resource"
-
 type MachineRequestSpecDisk struct {
 	Pool       string `json:"pool"`
 	Capacity   uint64 `json:"capacity"`
@@ -14,7 +12,7 @@ type MachineRequestSpecCdrom struct {
 
 type MachineRequestSpec struct {
 	Name     string                    `json:"name"`
-	Topology resource.Topology         `json:"topology"`
+	Topology Topology                  `json:"topology"`
 	Network  string                    `json:"network"`
 	Disks    []*MachineRequestSpecDisk `json:"disks"`
 	Cdrom    *MachineRequestSpecCdrom  `json:"cdrom"`

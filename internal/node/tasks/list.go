@@ -6,7 +6,6 @@ import (
 
 	"github.com/eskpil/rockferry/internal/node/queries"
 	"github.com/eskpil/rockferry/pkg/rockferry"
-	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 )
 
 type Executor struct {
@@ -22,7 +21,7 @@ type Task interface {
 
 type BoundTask interface {
 	Execute(context.Context, *Executor) error
-	Resource() *resource.Resource[any]
+	Resource() *rockferry.Resource[any]
 }
 
 type TaskList struct {
@@ -53,14 +52,14 @@ func (t *TaskList) AppendUnbound(task Task) {
 	t.unboundTasks <- task
 }
 
-func (t *TaskList) setResourcePhase(ctx context.Context, res *resource.Resource[any], phase resource.Phase, error string) error {
-	generic := t.e.Rockferry.Generic(resource.ResourceKindAll)
+func (t *TaskList) setResourcePhase(ctx context.Context, res *rockferry.Resource[any], phase rockferry.Phase, error string) error {
+	generic := t.e.Rockferry.Generic(rockferry.ResourceKindAll)
 
-	copy := new(resource.Resource[any])
+	copy := new(rockferry.Resource[any])
 	*copy = *res
 
 	copy.Status.Phase = phase
-	if error != "" && phase == resource.PhaseErrored {
+	if error != "" && phase == rockferry.PhaseErrored {
 		copy.Status.Error = new(string)
 		*copy.Status.Error = error
 	}
@@ -76,19 +75,19 @@ func (t *TaskList) executeUnbound(ctx context.Context, task Task) {
 }
 
 func (t *TaskList) executeBound(ctx context.Context, task BoundTask) {
-	if err := t.setResourcePhase(ctx, task.Resource(), resource.PhaseCreating, ""); err != nil {
+	if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseCreating, ""); err != nil {
 		fmt.Println("could not set resource phase", err)
 		return
 	}
 
 	if err := task.Execute(ctx, t.e); err != nil {
-		if err := t.setResourcePhase(ctx, task.Resource(), resource.PhaseErrored, err.Error()); err != nil {
+		if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseErrored, err.Error()); err != nil {
 			fmt.Println("could not set resource phase", err)
 			return
 		}
 	}
 
-	if err := t.setResourcePhase(ctx, task.Resource(), resource.PhaseCreated, ""); err != nil {
+	if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseCreated, ""); err != nil {
 		fmt.Println("could not set resource phase", err)
 		return
 	}

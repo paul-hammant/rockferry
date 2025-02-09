@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/eskpil/rockferry/pkg/rockferry"
-	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 	"github.com/eskpil/rockferry/pkg/rockferry/status"
 )
 
@@ -93,6 +92,6 @@ func (t *CreateVolumeTask) Execute(ctx context.Context, executor *Executor) erro
 	return executor.Rockferry.StorageVolumes().Patch(ctx, t.Volume, modified)
 }
 
-func (t *CreateVolumeTask) Resource() *resource.Resource[any] {
+func (t *CreateVolumeTask) Resource() *rockferry.Resource[any] {
 	return t.Volume.Generic()
 }

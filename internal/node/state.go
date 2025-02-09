@@ -6,7 +6,6 @@ import (
 	"github.com/eskpil/rockferry/internal/node/config"
 	"github.com/eskpil/rockferry/internal/node/tasks"
 	"github.com/eskpil/rockferry/pkg/rockferry"
-	"github.com/eskpil/rockferry/pkg/rockferry/resource"
 	"github.com/eskpil/rockferry/pkg/rockferry/status"
 )
 
@@ -89,7 +88,7 @@ func (s *State) watchMachineRequests(ctx context.Context) error {
 		}
 
 		for _, req := range requests {
-			if req.Status.Phase == resource.PhaseRequested {
+			if req.Status.Phase == rockferry.PhaseRequested {
 				task := new(tasks.CreateVirtualMachineTask)
 				task.Request = req
 				s.t.AppendBound(task)
@@ -104,7 +103,7 @@ func (s *State) watchMachineRequests(ctx context.Context) error {
 		for {
 			req := <-stream
 
-			if req.Status.Phase == resource.PhaseRequested {
+			if req.Status.Phase == rockferry.PhaseRequested {
 				task := new(tasks.CreateVirtualMachineTask)
 				task.Request = req
 				s.t.AppendBound(task)
@@ -141,7 +140,7 @@ func (s *State) watchStorageVolumes(ctx context.Context) error {
 	}
 
 	for _, vol := range volumes {
-		if vol.Status.Phase == resource.PhaseRequested {
+		if vol.Status.Phase == rockferry.PhaseRequested {
 			task := new(tasks.CreateVolumeTask)
 			task.Volume = vol
 			s.t.AppendBound(task)
@@ -158,7 +157,7 @@ func (s *State) watchStorageVolumes(ctx context.Context) error {
 		for {
 			vol := <-stream
 
-			if vol.Status.Phase == resource.PhaseRequested {
+			if vol.Status.Phase == rockferry.PhaseRequested {
 				task := new(tasks.CreateVolumeTask)
 				task.Volume = vol
 				s.t.AppendBound(task)

@@ -1,7 +1,5 @@
 package spec
 
-import "github.com/eskpil/rockferry/pkg/rockferry/resource"
-
 type MachineSpecInterface struct {
 	Mac   string `json:"mac"`
 	Model string `json:"model"`
@@ -31,8 +29,8 @@ type MachineSpecDisk struct {
 }
 
 type MachineSpec struct {
-	Name     string            `json:"name"`
-	Topology resource.Topology `json:"topology"`
+	Name     string   `json:"name"`
+	Topology Topology `json:"topology"`
 
 	Disks      []*MachineSpecDisk      `json:"disks"`
 	Interfaces []*MachineSpecInterface `json:"interfaces"`
