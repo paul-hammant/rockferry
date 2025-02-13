@@ -77,6 +77,11 @@ func (s *State) startupTasks() error {
 		s.t.AppendUnbound(task)
 	}
 
+	{
+		task := new(tasks.SyncMachineStatusesTask)
+		s.t.AppendUnbound(task)
+	}
+
 	return nil
 }
 

@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/eskpil/rockferry/pkg/rockferry/status"
 )
@@ -49,4 +50,9 @@ func (t *SyncNetworksTask) Execute(ctx context.Context, e *Executor) error {
 	}
 
 	return nil
+}
+
+func (t *SyncNetworksTask) Repeats() *time.Duration {
+	timeout := time.Minute * 5
+	return &timeout
 }

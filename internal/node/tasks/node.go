@@ -3,15 +3,49 @@ package tasks
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"syscall"
+	"time"
 
 	"github.com/eskpil/rockferry/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/eskpil/rockferry/pkg/uname"
 	"github.com/shirou/gopsutil/v3/cpu"
 )
 
 type SyncNodeTask struct{}
+
+func listNodeInterfaces() ([]*spec.NodeInterfaceSpec, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]*spec.NodeInterfaceSpec, len(ifaces))
+
+	for i, iface := range ifaces {
+		out[i] = new(spec.NodeInterfaceSpec)
+
+		out[i].Index = iface.Index
+		out[i].MTU = iface.MTU
+		out[i].Flags = iface.Flags.String()
+		out[i].Mac = iface.HardwareAddr.String()
+		out[i].Name = iface.Name
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			fmt.Println("failed to get interface addresses", err)
+			continue
+		}
+
+		for _, addr := range addrs {
+			out[i].Addrs = append(out[i].Addrs, addr.String())
+		}
+	}
+
+	return out, nil
+}
 
 func readNodeCpu() (uint64, uint64, uint64, error) {
 	info, err := cpu.Info()
@@ -88,6 +122,18 @@ func (t *SyncNodeTask) Execute(ctx context.Context, e *Executor) error {
 	uname, _ := uname.New()
 	modified.Spec.Kernel = fmt.Sprintf("%s %s %s", uname.Sysname(), uname.Machine(), uname.KernelRelease())
 
+	interfaces, err := listNodeInterfaces()
+	if err != nil {
+		return err
+	}
+
+	modified.Spec.Interfaces = interfaces
+
 	// TODO: Should be patch, but caused error on controller
 	return e.Rockferry.Nodes().Create(ctx, modified)
+}
+
+func (t *SyncNodeTask) Repeats() *time.Duration {
+	timeout := time.Second * 30
+	return &timeout
 }

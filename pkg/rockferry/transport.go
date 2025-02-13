@@ -35,7 +35,7 @@ func (t *Transport) C() controllerapi.ControllerApiClient {
 	return t.client
 }
 
-func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id string, owner *OwnerRef) (chan *Resource[interface{}], error) {
+func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id string, owner *OwnerRef) (chan *Resource[any, any], error) {
 	api := t.C()
 
 	// Create the initial watch request
@@ -49,7 +49,7 @@ func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id
 	req.Action = controllerapi.WatchAction(action)
 
 	// Create the channel to send updates
-	out := make(chan *Resource[any])
+	out := make(chan *Resource[any, any])
 
 	// Function to start watching and handle reconnection
 	var watch func() error
@@ -89,7 +89,7 @@ func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id
 
 					// Process the resource
 					unmapped := res.Resource
-					mapped := new(Resource[any])
+					mapped := new(Resource[any, any])
 
 					// Map the resource
 					mapped.Id = unmapped.Id
@@ -100,8 +100,8 @@ func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id
 					mapped.Owner.Kind = unmapped.Owner.Kind
 
 					mapped.Annotations = unmapped.Annotations
-					mapped.Status.Phase = Phase(unmapped.Status.Phase)
 
+					mapped.RawStatus = unmapped.Status
 					mapped.RawSpec = unmapped.Spec
 
 					// Send the mapped resource to the channel
@@ -125,7 +125,7 @@ func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id
 	return out, nil
 }
 
-func (t *Transport) Patch(ctx context.Context, original *Resource[any], modified *Resource[any]) error {
+func (t *Transport) Patch(ctx context.Context, original *Resource[any, any], modified *Resource[any, any]) error {
 	api := t.C()
 
 	patch, err := jsonpatch.CreateJSONPatch(modified, original)
@@ -159,7 +159,7 @@ func (t *Transport) Patch(ctx context.Context, original *Resource[any], modified
 	return nil
 }
 
-func (t *Transport) List(ctx context.Context, kind ResourceKind, id string, owner *OwnerRef) ([]*Resource[any], error) {
+func (t *Transport) List(ctx context.Context, kind ResourceKind, id string, owner *OwnerRef) ([]*Resource[any, any], error) {
 	api := t.C()
 
 	req := new(controllerapi.ListRequest)
@@ -169,6 +169,7 @@ func (t *Transport) List(ctx context.Context, kind ResourceKind, id string, owne
 	}
 	req.Kind = string(kind)
 	if owner != nil {
+		req.Owner = new(controllerapi.Owner)
 		req.Owner.Id = owner.Id
 		req.Owner.Kind = owner.Kind
 	}
@@ -184,10 +185,10 @@ func (t *Transport) List(ctx context.Context, kind ResourceKind, id string, owne
 		return nil, err
 	}
 
-	list := make([]*Resource[any], len(response.Resources))
+	list := make([]*Resource[any, any], len(response.Resources))
 
 	for i, unmapped := range response.Resources {
-		mapped := new(Resource[any])
+		mapped := new(Resource[any, any])
 
 		mapped.Id = unmapped.Id
 		mapped.Kind = ResourceKind(unmapped.Kind)
@@ -196,8 +197,9 @@ func (t *Transport) List(ctx context.Context, kind ResourceKind, id string, owne
 			mapped.Owner.Id = unmapped.Owner.Id
 			mapped.Owner.Kind = unmapped.Owner.Kind
 		}
+
 		mapped.Annotations = unmapped.Annotations
-		mapped.Status.Phase = Phase(unmapped.Status.Phase)
+		mapped.RawStatus = unmapped.GetStatus()
 		mapped.RawSpec = unmapped.GetSpec()
 
 		list[i] = mapped
@@ -207,7 +209,7 @@ func (t *Transport) List(ctx context.Context, kind ResourceKind, id string, owne
 	return list, nil
 }
 
-func (t *Transport) Create(ctx context.Context, in *Resource[any]) error {
+func (t *Transport) Create(ctx context.Context, in *Resource[any, any]) error {
 	api := t.C()
 
 	req := new(controllerapi.CreateRequest)
@@ -229,9 +231,13 @@ func (t *Transport) Create(ctx context.Context, in *Resource[any]) error {
 		return err
 	}
 
+	status, err := convert.Outgoing(&in.Status)
+	if err != nil {
+		return err
+	}
+
 	req.Resource.Spec = spec
-	req.Resource.Status = new(controllerapi.Status)
-	req.Resource.Status.Phase = string(in.Status.Phase)
+	req.Resource.Status = status
 
 	_, err = api.Create(ctx, req)
 	return err

@@ -20,13 +20,13 @@ export interface OwnerRef {
     id: string;
 }
 
-export interface Resource<T> {
+export interface Resource<T, S = Status> {
     id: string;
     kind: ResourceKind;
     annotations: Record<string, string> | undefined;
     owner: OwnerRef | undefined;
     spec: T | undefined;
-    status: Status;
+    status: S;
 }
 
 export interface Status {

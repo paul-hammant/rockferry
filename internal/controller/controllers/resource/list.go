@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/eskpil/rockferry/controllerapi"
 	"github.com/eskpil/rockferry/internal/controller/controllers/common"
 	"github.com/eskpil/rockferry/internal/controller/db"
 	"github.com/eskpil/rockferry/internal/controller/models"
@@ -53,10 +54,10 @@ func List() echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, common.InternalServerError())
 		}
 
-		list := new(common.ListResponse[models.Resource])
+		list := new(common.ListResponse[controllerapi.Resource])
 
 		for _, kv := range res.Kvs {
-			resource := new(models.Resource)
+			resource := new(controllerapi.Resource)
 			if err := json.Unmarshal(kv.Value, resource); err != nil {
 				fmt.Println("unable to unmarshal resource", err)
 				return c.JSON(http.StatusInternalServerError, common.InternalServerError())

@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
 type SyncStoragePoolsTask struct{}
@@ -24,4 +25,9 @@ func (t *SyncStoragePoolsTask) Execute(ctx context.Context, executor *Executor) 
 	}
 
 	return nil
+}
+
+func (t *SyncStoragePoolsTask) Repeats() *time.Duration {
+	timeout := time.Minute * 2
+	return &timeout
 }

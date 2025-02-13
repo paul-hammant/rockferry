@@ -1,10 +1,9 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Badge, IconButton, Table } from "@radix-ui/themes";
 import { list } from "../../data/queries/list";
 import { useNavigate } from "react-router";
 import { convert, Units } from "../../utils/conversion";
-import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
-import { deleteMachine } from "../../data/mutations/machine";
+import { PlusIcon } from "@radix-ui/react-icons";
 import { ResourceKind } from "../../types/resource";
 import { Card } from "@radix-ui/themes/src/index.js";
 import { Machine } from "../../types/machine";
@@ -22,10 +21,6 @@ export const VmsView: React.FC<Props> = ({ id }) => {
         queryKey: [id, `machines`],
         queryFn: () =>
             list<Machine>(ResourceKind.Machine, id, ResourceKind.Node),
-    });
-
-    const { mutate: deleteMutation } = useMutation({
-        mutationFn: deleteMachine,
     });
 
     if (data.isError) {
@@ -67,6 +62,9 @@ export const VmsView: React.FC<Props> = ({ id }) => {
                 <Table.Body>
                     {data.data?.list?.map((resource) => {
                         const machine = resource.spec!;
+                        const status = resource.status! as any;
+
+                        console.log(status);
 
                         const memory = convert(
                             machine.topology.memory,
@@ -75,9 +73,12 @@ export const VmsView: React.FC<Props> = ({ id }) => {
                         );
 
                         return (
-                            <Table.Row key={machine.uuid}>
+                            <Table.Row
+                                key={machine.uuid}
+                                onClick={() => navigate(`/vm/${resource.id!}`)}
+                            >
                                 <Table.RowHeaderCell>
-                                    <Badge color="green">Running</Badge>
+                                    <Badge color="green">{status.state}</Badge>
                                 </Table.RowHeaderCell>
                                 <Table.RowHeaderCell>
                                     {machine.name}
@@ -108,21 +109,7 @@ export const VmsView: React.FC<Props> = ({ id }) => {
                                         {machine.disks.length}
                                     </Badge>
                                 </Table.Cell>
-                                <Table.Cell>
-                                    <IconButton
-                                        color="red"
-                                        variant="soft"
-                                        size="1"
-                                        onClick={() => {
-                                            deleteMutation({
-                                                kind: ResourceKind.Machine,
-                                                id: resource.id,
-                                            });
-                                        }}
-                                    >
-                                        <TrashIcon width="15" height="15" />
-                                    </IconButton>
-                                </Table.Cell>
+                                <Table.Cell></Table.Cell>
                             </Table.Row>
                         );
                     })}

@@ -1,12 +1,12 @@
 import { List } from "..";
-import { Resource, ResourceKind } from "../../types/resource";
+import { Resource, ResourceKind, Status } from "../../types/resource";
 
-export const get = async <T>(
+export const get = async <T, S = Status>(
     id: string,
     kind: ResourceKind,
     owner_id: string | undefined = undefined,
     owner_kind: ResourceKind | undefined = undefined,
-): Promise<Resource<T>> => {
+): Promise<Resource<T, S>> => {
     const params = new URLSearchParams();
 
     params.append("id", id);
@@ -17,7 +17,7 @@ export const get = async <T>(
         params.append("owner_kind", owner_kind);
     }
 
-    const resources: List<Resource<T>> = await fetch(
+    const resources: List<Resource<T, S>> = await fetch(
         `http://10.100.102:8080/v1/resources?${params.toString()}`,
         {},
     ).then((res) => res.json());

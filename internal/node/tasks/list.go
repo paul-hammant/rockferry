@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/eskpil/rockferry/internal/node/queries"
 	"github.com/eskpil/rockferry/pkg/rockferry"
@@ -17,11 +18,12 @@ type Executor struct {
 
 type Task interface {
 	Execute(context.Context, *Executor) error
+	Repeats() *time.Duration
 }
 
 type BoundTask interface {
 	Execute(context.Context, *Executor) error
-	Resource() *rockferry.Resource[any]
+	Resource() *rockferry.Resource[any, any]
 }
 
 type TaskList struct {
@@ -52,45 +54,66 @@ func (t *TaskList) AppendUnbound(task Task) {
 	t.unboundTasks <- task
 }
 
-func (t *TaskList) setResourcePhase(ctx context.Context, res *rockferry.Resource[any], phase rockferry.Phase, error string) error {
-	generic := t.e.Rockferry.Generic(rockferry.ResourceKindAll)
-
-	copy := new(rockferry.Resource[any])
-	*copy = *res
-
-	copy.Status.Phase = phase
-	if error != "" && phase == rockferry.PhaseErrored {
-		copy.Status.Error = new(string)
-		*copy.Status.Error = error
-	}
-
-	err := generic.Patch(ctx, res, copy)
-	return err
-}
-
 func (t *TaskList) executeUnbound(ctx context.Context, task Task) {
+	// Execute at start as well
 	if err := task.Execute(ctx, t.e); err != nil {
 		fmt.Println("failed to execute task", err)
 	}
-}
 
-func (t *TaskList) executeBound(ctx context.Context, task BoundTask) {
-	if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseCreating, ""); err != nil {
-		fmt.Println("could not set resource phase", err)
+	if task.Repeats() == nil {
 		return
 	}
 
-	if err := task.Execute(ctx, t.e); err != nil {
-		if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseErrored, err.Error()); err != nil {
-			fmt.Println("could not set resource phase", err)
-			return
+	// TODO: Add logic to stop.
+	ticker := time.NewTicker(*task.Repeats())
+	defer ticker.Stop()
+
+	// Safe to block here, we are in our own goroutine.
+	for {
+		select {
+		case <-ticker.C:
+			{
+				if err := task.Execute(ctx, t.e); err != nil {
+					fmt.Println("failed to execute task", err)
+				}
+			}
 		}
 	}
 
-	if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseCreated, ""); err != nil {
-		fmt.Println("could not set resource phase", err)
-		return
+}
+
+func (t *TaskList) setResourcePhase(ctx context.Context, original *rockferry.Resource[any, any], phase rockferry.Phase, error string) error {
+	generic := t.e.Rockferry.Generic(rockferry.ResourceKindAll)
+
+	// All this type casting is a major hack.
+
+	original.Status = original.Status.(rockferry.DefaultStatus)
+	copy := new(rockferry.Resource[any, any])
+	*copy = *original
+
+	status := new(rockferry.DefaultStatus)
+
+	status.Phase = phase
+	if error != "" && phase == rockferry.PhaseErrored {
+		status.Error = new(string)
+		*status.Error = error
 	}
+	copy.Status = *status
+	copy.Status = copy.Status.(rockferry.DefaultStatus)
+
+	err := generic.Patch(ctx, original, copy)
+	return err
+}
+
+func (t *TaskList) executeBound(ctx context.Context, task BoundTask) {
+	if err := task.Execute(ctx, t.e); err != nil {
+		fmt.Println("task returned error", err)
+	}
+
+	if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseCreated, ""); err != nil {
+		panic(err)
+	}
+
 }
 func (t *TaskList) Run(ctx context.Context) error {
 	for {

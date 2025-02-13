@@ -2,6 +2,9 @@ package queries
 
 import (
 	"encoding/xml"
+	"fmt"
+	"net"
+	"strconv"
 
 	"github.com/digitalocean/go-libvirt"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
@@ -107,7 +110,8 @@ func (c *Client) CreateDomain(id string, spec *spec.MachineSpec) error {
 	vnc := new(domain.Graphics)
 
 	vnc.Type = "vnc"
-	vnc.AutoPort = "yes"
+	//vnc.AutoPort = "yes"
+	vnc.Websocket = "-1"
 	vnc.Listen = new(domain.GraphicsListen)
 
 	vnc.Listen.Type = "address"
@@ -139,4 +143,96 @@ func (c *Client) DestroyDomain(id string) error {
 	}
 
 	return c.v.DomainDestroy(domain)
+}
+
+func (c *Client) DomainExists(id string) bool {
+	domId := uuid.MustParse(id)
+
+	_, err := c.v.DomainLookupByUUID(libvirt.UUID(domId))
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+func (c *Client) SyncDomainStatus(id string) (*spec.MachineStatus, error) {
+	status := new(spec.MachineStatus)
+
+	domId := uuid.MustParse(id)
+
+	dom, err := c.v.DomainLookupByUUID(libvirt.UUID(domId))
+	if err != nil {
+		return nil, err
+	}
+
+	state, _, err := c.v.DomainGetState(dom, 0)
+	switch state {
+	case 1:
+		{
+			status.State = spec.MachineStatusStateRunning
+			break
+		}
+	case 6:
+		{
+			status.State = spec.MachineStatusStateCrashed
+			break
+		}
+	default:
+		{
+			status.State = spec.MachineStatusStateStopped
+			break
+		}
+	}
+
+	// TODO: Best to avoid this completely. DomainGetXMLDesc is a very heavy operation.
+	xmlSchema, err := c.v.DomainGetXMLDesc(dom, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	schema := new(domain.Schema)
+	if err := xml.Unmarshal([]byte(xmlSchema), schema); err != nil {
+		return nil, err
+	}
+
+	for _, graphicDevice := range schema.Devices.Graphics {
+		if graphicDevice.Type != "vnc" {
+			continue
+		}
+
+		// TODO: When both are present create a seperate entry for both.
+		if graphicDevice.Websocket != "" {
+			port, err := strconv.ParseInt(graphicDevice.Websocket, 10, 16)
+			if err != nil {
+				return nil, err
+			}
+
+			status.VNC = append(status.VNC, spec.MachineStatusVNC{Port: int32(port), Type: spec.MachineStatusVNCTypeWebsocket})
+		} else {
+			status.VNC = append(status.VNC, spec.MachineStatusVNC{Port: graphicDevice.Port, Type: spec.MachineStatusVNCTypeNative})
+		}
+	}
+
+	interfaces, err := c.v.DomainInterfaceAddresses(dom, 1, 0)
+	if err != nil {
+		status.Errors = append(status.Errors, err.Error())
+		return status, nil
+	}
+
+	for i, iface := range interfaces {
+		addrs := []string{}
+
+		for _, a := range iface.Addrs {
+			addrs = append(addrs, net.ParseIP(fmt.Sprintf("%s/%d", a.Addr, a.Prefix)).String())
+		}
+
+		status.Interfaces[i] = spec.MachineStatusInterface{
+			Name:  iface.Name,
+			Mac:   iface.Hwaddr[0],
+			Addrs: addrs,
+		}
+	}
+
+	return status, nil
 }

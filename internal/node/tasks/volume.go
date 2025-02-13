@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/eskpil/rockferry/pkg/rockferry/status"
@@ -52,12 +53,21 @@ func (t *SyncStorageVolumesTask) Execute(ctx context.Context, executor *Executor
 	return nil
 }
 
+func (t *SyncStorageVolumesTask) Repeats() *time.Duration {
+	timeout := time.Minute * 2
+	return &timeout
+}
+
 type DeleteVolumeTask struct {
 	Volume *rockferry.StorageVolume
 }
 
 func (t *DeleteVolumeTask) Execute(ctx context.Context, executor *Executor) error {
 	return executor.Libvirt.DeleteStorageVolume(t.Volume.Spec.Key)
+}
+
+func (t *DeleteVolumeTask) Repeats() *time.Duration {
+	return nil
 }
 
 type CreateVolumeTask struct {
@@ -92,6 +102,6 @@ func (t *CreateVolumeTask) Execute(ctx context.Context, executor *Executor) erro
 	return executor.Rockferry.StorageVolumes().Patch(ctx, t.Volume, modified)
 }
 
-func (t *CreateVolumeTask) Resource() *rockferry.Resource[any] {
+func (t *CreateVolumeTask) Resource() *rockferry.Resource[any, any] {
 	return t.Volume.Generic()
 }

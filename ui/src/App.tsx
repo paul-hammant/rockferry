@@ -8,6 +8,7 @@ import { PoolView } from "./views/pool/view";
 import { CreateVmView } from "./views/vm/create";
 import { Overview } from "./views/overview/overview";
 import { CreateVolumeView } from "./views/pool/create-volume";
+import { VmOverview } from "./views/vm/overview";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ function App() {
                 <BrowserRouter>
                     <Routes>
                         <Route index element={<Overview />} />
+                        <Route path="vm/:id" element={<VmOverview />} />
                         <Route path="nodes/:id" element={<NodeView />} />
                         <Route
                             path="nodes/:id/create-vm"

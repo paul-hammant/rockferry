@@ -22,3 +22,13 @@ export interface Machine {
     disks: MachineDisk[];
     interfaces: MachineInterface[];
 }
+
+export interface MachineStatusVNC {
+    type: string;
+    port: string;
+}
+
+export interface MachineStatus {
+    state: string;
+    vnc: MachineStatusVNC[];
+}

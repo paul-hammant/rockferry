@@ -1,5 +1,19 @@
 package spec
 
+type MachineStatusState string
+type MachineStatusVNCType string
+
+const (
+	MachineStatusStateRunning   MachineStatusState = "running"
+	MachineStatusStateRebooting                    = "rebooting"
+	MachineStatusStateCrashed                      = "crashed"
+	MachineStatusStateStopped                      = "stopped"
+	MachineStatusStateBooting                      = "booting"
+
+	MachineStatusVNCTypeWebsocket MachineStatusVNCType = "websocket"
+	MachineStatusVNCTypeNative                         = "native"
+)
+
 type MachineSpecInterface struct {
 	Mac   string `json:"mac"`
 	Model string `json:"model"`
@@ -34,4 +48,23 @@ type MachineSpec struct {
 
 	Disks      []*MachineSpecDisk      `json:"disks"`
 	Interfaces []*MachineSpecInterface `json:"interfaces"`
+}
+
+type MachineStatusVNC struct {
+	Port int32                `json:"port"`
+	Type MachineStatusVNCType `json:"type"`
+}
+
+type MachineStatusInterface struct {
+	Name  string   `json:"name"`
+	Mac   string   `json:"mac"`
+	Addrs []string `json:"addrs"`
+}
+
+type MachineStatus struct {
+	State  MachineStatusState `json:"state"`
+	Errors []string           `json:"errors"`
+
+	VNC        []MachineStatusVNC       `json:"vnc"`
+	Interfaces []MachineStatusInterface `json:"interfaces"`
 }

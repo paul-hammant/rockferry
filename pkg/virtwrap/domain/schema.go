@@ -1013,6 +1013,7 @@ type Passwd struct {
 
 type Graphics struct {
 	AutoPort      string          `xml:"autoport,attr,omitempty"`
+	Websocket     string          `xml:"websocket,attr,omitempty"`
 	DefaultMode   string          `xml:"defaultMode,attr,omitempty"`
 	Listen        *GraphicsListen `xml:"listen,omitempty"`
 	PasswdValidTo string          `xml:"passwdValidTo,attr,omitempty"`

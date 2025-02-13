@@ -1,5 +1,14 @@
 import { Topology } from "./topology";
 
+export interface NodeInterface {
+    addrs: string[] | null;
+    flags: string;
+    index: number;
+    mac: string;
+    mtu: number;
+    name: string;
+}
+
 export interface Node {
     hostname: string;
     kernel: string;
@@ -7,4 +16,5 @@ export interface Node {
     total_machines: number;
     topology: Topology;
     uptime: number;
+    interfaces: NodeInterface[];
 }

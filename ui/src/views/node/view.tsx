@@ -69,7 +69,7 @@ const NodeMetadata: React.FC<{ node: Resource<Node> }> = ({ node }) => {
                 <DataList.Item align="center">
                     <DataList.Label minWidth="88px">Status</DataList.Label>
                     <DataList.Value>
-                        <Badge color="jade" variant="soft" radius="full">
+                        <Badge color="jade" variant="soft">
                             Connected
                         </Badge>
                     </DataList.Value>
