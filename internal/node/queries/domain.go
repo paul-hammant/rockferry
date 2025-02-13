@@ -3,7 +3,6 @@ package queries
 import (
 	"encoding/xml"
 	"fmt"
-	"net"
 	"strconv"
 
 	"github.com/digitalocean/go-libvirt"
@@ -107,7 +106,20 @@ func (c *Client) CreateDomain(id string, spec *spec.MachineSpec) error {
 		schema.Devices.Interfaces = append(schema.Devices.Interfaces, *iface)
 	}
 
+	qga := new(domain.Channel)
+
+	qga.Type = "unix"
+	qga.Source = new(domain.ChannelSource)
+	qga.Source.Mode = "bind"
+	qga.Source.Path = fmt.Sprintf("/var/lib/libvirt/qemu/%s.agent", id)
+
+	qga.Target = new(domain.ChannelTarget)
+	qga.Target.Type = "virtio"
+	qga.Target.Name = "org.qemu.guest_agent.0"
+
 	vnc := new(domain.Graphics)
+
+	schema.Devices.Channels = append(schema.Devices.Channels, *qga)
 
 	vnc.Type = "vnc"
 	//vnc.AutoPort = "yes"
@@ -220,11 +232,13 @@ func (c *Client) SyncDomainStatus(id string) (*spec.MachineStatus, error) {
 		return status, nil
 	}
 
+	status.Interfaces = make([]spec.MachineStatusInterface, len(interfaces))
+
 	for i, iface := range interfaces {
 		addrs := []string{}
 
 		for _, a := range iface.Addrs {
-			addrs = append(addrs, net.ParseIP(fmt.Sprintf("%s/%d", a.Addr, a.Prefix)).String())
+			addrs = append(addrs, fmt.Sprintf("%s/%d", a.Addr, a.Prefix))
 		}
 
 		status.Interfaces[i] = spec.MachineStatusInterface{

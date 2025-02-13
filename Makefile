@@ -23,8 +23,8 @@ build_nodeapi: controllerapi
 	GOOS=linux GOARCH=amd64 go build -o node_exe cmd/node/main.go
 
 node: build_nodeapi
-	ssh root@10.100.0.116 rm -rf /root/node_exe
-	scp config.yml root@10.100.0.116:/root/config.yml
-	scp node_exe root@10.100.0.116:/root/node
+	ssh root@10.100.0.119 rm -rf /root/node_exe
+	scp config.yml root@10.100.0.119:/root/config.yml
+	scp node_exe root@10.100.0.119:/root/node
 	rm -rf node_exe
-	ssh -t root@10.100.0.116 /root/node
+	ssh -t root@10.100.0.119 /root/node
