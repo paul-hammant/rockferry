@@ -5,14 +5,16 @@ import (
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 )
 
-type WatchAction = int
+type WatchAction = controllerapi.WatchAction
 
 const (
-	WatchActionPut WatchAction = iota
-	WatchActionDelete
-	WatchActionAll
+	WatchActionAll    = controllerapi.WatchAction_ALL
+	WatchActionDelete = controllerapi.WatchAction_DELETE
+	WatchActionUpdate = controllerapi.WatchAction_UPDATE
+	WatchActionCreate = controllerapi.WatchAction_CREATE
 )
 
+type Generic = Resource[any, any]
 type MachineRequest = Resource[spec.MachineRequestSpec, DefaultStatus]
 type StorageVolume = Resource[spec.StorageVolumeSpec, DefaultStatus]
 type StoragePool = Resource[spec.StoragePoolSpec, DefaultStatus]
@@ -20,6 +22,8 @@ type Node = Resource[spec.NodeSpec, DefaultStatus]
 type Network = Resource[spec.NetworkSpec, DefaultStatus]
 type Machine = Resource[spec.MachineSpec, spec.MachineStatus]
 type Instance = Resource[spec.InstanceSpec, DefaultStatus]
+type ClusterRequest = Resource[spec.ClusterRequestSpec, DefaultStatus]
+type Cluster = Resource[spec.ClusterSpec, spec.ClusterStatus]
 
 type Client struct {
 	c *controllerapi.ControllerApiClient
@@ -32,6 +36,8 @@ type Client struct {
 	networksv1         *Interface[spec.NetworkSpec, DefaultStatus]
 	storagepoolsv1     *Interface[spec.StoragePoolSpec, DefaultStatus]
 	instancev1         *Interface[spec.InstanceSpec, DefaultStatus]
+	clustersrequestsv1 *Interface[spec.ClusterRequestSpec, DefaultStatus]
+	clustersv1         *Interface[spec.ClusterSpec, spec.ClusterStatus]
 }
 
 func New(url string) (*Client, error) {
@@ -48,6 +54,9 @@ func New(url string) (*Client, error) {
 		networksv1:         NewInterface[spec.NetworkSpec, DefaultStatus](ResourceKindNetwork, transport),
 		storagepoolsv1:     NewInterface[spec.StoragePoolSpec, DefaultStatus](ResourceKindStoragePool, transport),
 		instancev1:         NewInterface[spec.InstanceSpec, DefaultStatus](ResourceKindInstance, transport),
+
+		clustersrequestsv1: NewInterface[spec.ClusterRequestSpec, DefaultStatus](ResourceKindClusterRequest, transport),
+		clustersv1:         NewInterface[spec.ClusterSpec, spec.ClusterStatus](ResourceKindCluster, transport),
 
 		t: transport,
 	}, nil
@@ -83,4 +92,8 @@ func (c *Client) StoragePools() *Interface[spec.StoragePoolSpec, DefaultStatus] 
 
 func (c *Client) Resource() *Interface[spec.InstanceSpec, DefaultStatus] {
 	return c.instancev1
+}
+
+func (c *Client) ClusterRequest() *Interface[spec.ClusterRequestSpec, DefaultStatus] {
+	return c.clustersrequestsv1
 }

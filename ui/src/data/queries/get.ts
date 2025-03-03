@@ -18,7 +18,7 @@ export const get = async <T, S = Status>(
     }
 
     const resources: List<Resource<T, S>> = await fetch(
-        `http://10.100.102:8080/v1/resources?${params.toString()}`,
+        `http://10.100.0.186:8080/v1/resources?${params.toString()}`,
         {},
     ).then((res) => res.json());
 

@@ -1,14 +1,12 @@
-import { DeleteResourceInput } from "../../types/resource";
+import { CreateResourceInput } from "../../types/resource";
 
 export interface Response {
     ok: boolean;
 }
 
-export const deleteMachine = async (
-    input: DeleteResourceInput,
-): Promise<Response> => {
+export const create = async (input: CreateResourceInput): Promise<Response> => {
     return fetch("http://10.100.0.186:8080/v1/resources", {
-        method: "DELETE",
+        method: "POST",
         body: JSON.stringify(input),
         headers: {
             "Content-Type": "application/json",

@@ -4,6 +4,8 @@ type MachineRequestSpecDisk struct {
 	Pool       string `json:"pool"`
 	Capacity   uint64 `json:"capacity"`
 	Allocation uint64 `json:"allocation"`
+	Volume     string `json:"volume"`
+	Key        string `json:"key"`
 }
 
 type MachineRequestSpecCdrom struct {

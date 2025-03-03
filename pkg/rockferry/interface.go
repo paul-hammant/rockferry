@@ -2,8 +2,6 @@ package rockferry
 
 import (
 	"context"
-
-	"github.com/eskpil/rockferry/pkg/convert"
 )
 
 type Interface[S any, T any] struct {
@@ -18,25 +16,6 @@ func NewInterface[S any, T any](kind ResourceKind, t *Transport) *Interface[S, T
 	return i
 }
 
-func (i *Interface[S, T]) fix(unmapped *Resource[any, any]) *Resource[S, T] {
-	mapped := new(Resource[S, T])
-	mapped.Id = unmapped.Id
-	mapped.Owner = unmapped.Owner
-	mapped.Kind = unmapped.Kind
-	mapped.Annotations = unmapped.Annotations
-
-	status, err := convert.Convert[T](unmapped.RawStatus)
-	if err != nil {
-		panic(err)
-	}
-	mapped.Status = *status
-
-	spec, _ := convert.Convert[S](unmapped.RawSpec)
-	mapped.Spec = *spec
-
-	return mapped
-}
-
 func (i *Interface[S, T]) List(ctx context.Context, id string, owner *OwnerRef) ([]*Resource[S, T], error) {
 	in, err := i.t.List(ctx, i.kind, id, owner)
 	if err != nil {
@@ -46,7 +25,7 @@ func (i *Interface[S, T]) List(ctx context.Context, id string, owner *OwnerRef) 
 	out := make([]*Resource[S, T], len(in))
 
 	for idx, unmapped := range in {
-		out[idx] = i.fix(unmapped)
+		out[idx] = Cast[S, T](unmapped)
 	}
 
 	return out, nil
@@ -62,7 +41,7 @@ func (i *Interface[S, T]) Watch(ctx context.Context, action WatchAction, id stri
 
 	go func() {
 		for {
-			out <- i.fix(<-in)
+			out <- Cast[S, T](<-in)
 		}
 	}()
 

@@ -9,6 +9,8 @@ import { CreateVmView } from "./views/vm/create";
 import { Overview } from "./views/overview/overview";
 import { CreateVolumeView } from "./views/pool/create-volume";
 import { VmOverview } from "./views/vm/overview";
+import { CreateClusterView } from "./views/cluster/create";
+import { ClusterOverview } from "./views/cluster/overview";
 
 const queryClient = new QueryClient();
 
@@ -19,17 +21,29 @@ function App() {
                 <BrowserRouter>
                     <Routes>
                         <Route index element={<Overview />} />
+
+                        <Route
+                            path="/create-cluster"
+                            element={<CreateClusterView />}
+                        />
+                        <Route
+                            path="/cluster/:id"
+                            element={<ClusterOverview />}
+                        />
+
                         <Route path="vm/:id" element={<VmOverview />} />
                         <Route path="nodes/:id" element={<NodeView />} />
                         <Route
                             path="nodes/:id/create-vm"
                             element={<CreateVmView />}
                         />
+
                         <Route path="pools/:id" element={<PoolView />} />
                         <Route
                             path="pools/:id/create-volume"
                             element={<CreateVolumeView />}
                         />
+
                         <Route path="*" element={<Text>404 </Text>} />
                     </Routes>
                 </BrowserRouter>

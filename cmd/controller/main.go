@@ -8,16 +8,18 @@ import (
 	"time"
 
 	"github.com/eskpil/rockferry/controllerapi"
-	"github.com/eskpil/rockferry/internal/controller/api"
 	"github.com/eskpil/rockferry/internal/controller"
+	"github.com/eskpil/rockferry/internal/controller/api"
 	"github.com/eskpil/rockferry/internal/controller/controllers/nodes"
 	"github.com/eskpil/rockferry/internal/controller/controllers/resource"
 	"github.com/eskpil/rockferry/internal/controller/db"
+	"github.com/eskpil/rockferry/internal/controller/runtime"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/server/v3/embed"
 )
 
@@ -55,11 +57,25 @@ func main() {
 		panic(err)
 	}
 
+	// TODO: Enable some kind of config
+	// TODO: Avoid multiple db connections
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"localhost:2379"},
+		DialTimeout: 5 * time.Second,
+	})
+
+	// TODO: Avoid panic
+	if err != nil {
+		panic(err)
+	}
+
+	r := runtime.New(cli)
+
 	wg.Add(1)
 	go func(wg *sync.WaitGroup) {
 		server := echo.New()
 
-		server.Use(db.Middleware())
+		server.Use(r.EchoMiddleware())
 		server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 			AllowOrigins: []string{"*"},
 			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
@@ -84,7 +100,7 @@ func main() {
 			panic(err)
 		}
 
-		api, err := api.New()
+		api, err := api.New(r)
 		if err != nil {
 			panic(err)
 		}

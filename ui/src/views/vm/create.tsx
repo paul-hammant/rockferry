@@ -415,14 +415,12 @@ export const CreateVmView: React.FC<unknown> = () => {
                                                 Network
                                             </label>
                                         </Box>
-                                        <Flex justify="between" gap="2">
-                                            <NetworkSelect
-                                                nodeId={id!}
-                                                onChange={(v) =>
-                                                    setFieldValue("network", v)
-                                                }
-                                            />
-                                        </Flex>
+                                        <NetworkSelect
+                                            nodeId={id!}
+                                            onChange={(v) =>
+                                                setFieldValue("network", v)
+                                            }
+                                        />
                                     </Box>
                                     <Flex justify="end" pt="5">
                                         <Button

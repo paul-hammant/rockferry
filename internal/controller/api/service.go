@@ -8,6 +8,7 @@ import (
 
 	"github.com/eskpil/rockferry/controllerapi"
 	"github.com/eskpil/rockferry/internal/controller/models"
+	"github.com/eskpil/rockferry/pkg/rockferry"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/google/uuid"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -19,67 +20,38 @@ import (
 func (c Controller) Watch(req *controllerapi.WatchRequest, res grpc.ServerStreamingServer[controllerapi.WatchResponse]) error {
 	ctx := res.Context()
 
-	var opts []clientv3.OpOption
-	path := ""
-	if req.Id == nil {
-		opts = append(opts, clientv3.WithPrefix())
-		path = fmt.Sprintf("%s/%s/", models.RootKey, req.Kind)
-	} else {
-		path = fmt.Sprintf("%s/%s/%s", models.RootKey, req.Kind, *req.Id)
+	id := ""
+	if req.Id != nil {
+		id = *req.Id
 	}
 
-	// TODO: Avoid this hack
-	if req.Kind == models.ResourceKindStorageVolume && req.Id != nil {
-		path = fmt.Sprintf("%s/%s/%s", models.RootKey, req.Kind, req.Owner.Id)
+	owner := new(rockferry.OwnerRef)
+	if req.Owner != nil {
+		owner.Id = req.Owner.Id
+		owner.Kind = req.Owner.Kind
 	}
 
-	if req.Action == controllerapi.WatchAction_DELETE {
-		opts = append(opts, clientv3.WithPrevKV())
+	stream, canceled, err := c.R.Watch(ctx, req.Action, req.Kind, id, owner)
+	if err != nil {
+		return err
 	}
-
-	channel := c.Db.Watch(ctx, path, opts...)
 
 	for {
-		w := <-channel
-		if w.Canceled {
-			break
-		}
-
-		if err := w.Err(); err != nil {
-			panic(err)
-		}
-
-		for _, event := range w.Events {
-			// NOTE: Skip unwanted events
-			if int(event.Type) != int(req.Action) && req.Action != controllerapi.WatchAction_ALL {
-				continue
-			}
-
-			if req.Action == controllerapi.WatchAction_DELETE {
-				event.Kv = event.PrevKv
-			}
-
-			resource := new(controllerapi.Resource)
-			if err := json.Unmarshal(event.Kv.Value, resource); err != nil {
+		select {
+		case <-canceled:
+			return status.Error(codes.Aborted, "stream closed")
+		case resource := <-stream:
+			response := new(controllerapi.WatchResponse)
+			response.Resource, err = resource.Transport()
+			if err != nil {
 				panic(err)
 			}
 
-			if req.Owner != nil && req.Owner.Id != "" && req.Owner.Kind != "" && resource.Owner != nil {
-				if req.Owner.Id != resource.Owner.Id && req.Owner.Kind != resource.Owner.Kind {
-					continue
-				}
-			}
-
-			response := new(controllerapi.WatchResponse)
-			response.Resource = resource
 			if err := res.Send(response); err != nil {
 				panic(err)
 			}
-
 		}
 	}
-
-	return nil
 }
 
 func (c Controller) List(ctx context.Context, req *controllerapi.ListRequest) (*controllerapi.ListResponse, error) {
@@ -123,8 +95,11 @@ func (c Controller) List(ctx context.Context, req *controllerapi.ListRequest) (*
 			}
 		}
 
-		response.Resources = append(response.Resources, resource)
+		if resource.Kind == rockferry.ResourceKindMachineRequest {
+			fmt.Println(resource.Phase)
+		}
 
+		response.Resources = append(response.Resources, resource)
 	}
 
 	return response, nil
@@ -179,14 +154,9 @@ func (c Controller) Create(ctx context.Context, input *controllerapi.CreateReque
 		input.Resource.Id = uuid.NewString()
 	}
 
-	path := fmt.Sprintf("%s/%s/%s", models.RootKey, input.Resource.Kind, input.Resource.Id)
+	mapped := rockferry.MapResource(input.GetResource())
 
-	bytes, err := json.Marshal(input.Resource)
-	if err != nil {
-		panic(err)
-	}
-
-	if _, err := c.Db.Put(ctx, path, string(bytes)); err != nil {
+	if err := c.R.CreateResource(ctx, mapped); err != nil {
 		fmt.Println("failed to insert resource", err)
 		return nil, status.Errorf(codes.Internal, "something wrong happend")
 	}

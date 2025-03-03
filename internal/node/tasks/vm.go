@@ -15,7 +15,7 @@ type CreateVirtualMachineTask struct {
 	Request *rockferry.MachineRequest
 }
 
-func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *Executor, vmId string) ([]*spec.MachineSpecDisk, error) {
+func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *Executor) ([]*spec.MachineSpecDisk, error) {
 	disks := []*spec.MachineSpecDisk{}
 
 	for _, disk := range t.Request.Spec.Disks {
@@ -27,44 +27,9 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 
 		pool := pools[0]
 
-		name := uuid.NewString()
-		format := "raw"
-
-		capacity := disk.Capacity
-		allocation := disk.Capacity
-
-		// TODO: Check if volume already is created and continue
-		if err := executor.Libvirt.CreateVolume(pool.Spec.Name, name, format, capacity, allocation); err != nil {
-			return nil, err
-		}
-
-		volumeSpec, err := executor.Libvirt.QueryVolumeSpec(pool.Spec.Name, name)
-		if err != nil {
-			return nil, err
-		}
-
-		out := new(rockferry.StorageVolume)
-
-		out.Id = fmt.Sprintf("%s/%s", pool.Id, name)
-		out.Kind = rockferry.ResourceKindStorageVolume
-
-		out.Annotations = map[string]string{}
-		out.Annotations["vm"] = vmId
-		out.Annotations["vm.name"] = t.Request.Spec.Name
-
-		out.Spec = *volumeSpec
-		out.Status.Phase = rockferry.PhaseCreated
-		out.Owner = new(rockferry.OwnerRef)
-		out.Owner.Id = pool.Id
-		out.Owner.Kind = rockferry.ResourceKindStoragePool
-
-		if err := executor.Rockferry.StorageVolumes().Create(ctx, out); err != nil {
-			panic(err)
-		}
-
 		d := new(spec.MachineSpecDisk)
-		d.Key = volumeSpec.Key
-		d.Volume = out.Id
+		d.Key = disk.Key
+		d.Volume = disk.Volume
 		if pool.Spec.Type == "rbd" {
 			d.Type = "network"
 			d.Device = "disk"
@@ -131,7 +96,9 @@ func (t *CreateVirtualMachineTask) Execute(ctx context.Context, executor *Execut
 	// NOTE: Used to annotate storage volumes with the vm id. This is useful for deletion.
 	vmId := uuid.NewString()
 
-	disks, err := t.createVmDisks(ctx, executor, vmId)
+	fmt.Println("creating vm", t.Request.Spec.Name)
+
+	disks, err := t.createVmDisks(ctx, executor)
 	if err != nil {
 		return err
 	}
@@ -246,6 +213,6 @@ func (t *SyncMachineStatusesTask) Execute(ctx context.Context, e *Executor) erro
 }
 
 func (t *SyncMachineStatusesTask) Repeats() *time.Duration {
-	timeout := time.Second * 30
+	timeout := time.Second * 2
 	return &timeout
 }

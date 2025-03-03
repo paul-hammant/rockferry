@@ -32,7 +32,7 @@ export const PoolsView: React.FC<Props> = ({ nodeId }) => {
                 <Table.Header>
                     <Table.Row>
                         <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Volumes</Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell>Default</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Usage</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Backend</Table.ColumnHeaderCell>
                     </Table.Row>
@@ -41,6 +41,15 @@ export const PoolsView: React.FC<Props> = ({ nodeId }) => {
                 <Table.Body>
                     {data.data?.list.map((resource) => {
                         const pool = resource.spec!;
+
+                        let default_ = "no";
+
+                        if (
+                            resource.annotations &&
+                            resource.annotations["rockferry.default"] == "yes"
+                        ) {
+                            default_ = "yes";
+                        }
 
                         const capacity_gb = Math.round(
                             convert(pool.capacity, Units.Bytes, Units.Gigabyte),
@@ -63,9 +72,7 @@ export const PoolsView: React.FC<Props> = ({ nodeId }) => {
                                 <Table.RowHeaderCell>
                                     {pool.name}
                                 </Table.RowHeaderCell>
-                                <Table.Cell>
-                                    {pool.allocated_volumes}
-                                </Table.Cell>
+                                <Table.Cell>{default_}</Table.Cell>
                                 <Table.Cell>
                                     <Badge color="green">
                                         {allocated_gb} Gb

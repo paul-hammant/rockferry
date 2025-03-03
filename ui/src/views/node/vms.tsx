@@ -1,19 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { Badge, IconButton, Table } from "@radix-ui/themes";
+import { Badge, Table } from "@radix-ui/themes";
 import { list } from "../../data/queries/list";
 import { useNavigate } from "react-router";
 import { convert, Units } from "../../utils/conversion";
-import { PlusIcon } from "@radix-ui/react-icons";
 import { ResourceKind } from "../../types/resource";
 import { Card } from "@radix-ui/themes/src/index.js";
 import { Machine } from "../../types/machine";
+import { MachinesHeader } from "../../components/machines";
 
 interface Props {
     id: string;
 }
 
 // TODO: Add skeleton in table body for clean ui when loading
-
 export const VmsView: React.FC<Props> = ({ id }) => {
     const navigate = useNavigate();
 
@@ -31,33 +30,9 @@ export const VmsView: React.FC<Props> = ({ id }) => {
     return (
         <Card>
             <Table.Root layout="auto">
-                <Table.Header>
-                    <Table.Row>
-                        <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Cores</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Memory</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>
-                            Mac (network)
-                        </Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>
-                            Interfaces
-                        </Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Drives</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>
-                            <IconButton
-                                color="purple"
-                                variant="soft"
-                                size="1"
-                                onClick={() =>
-                                    navigate(`/nodes/${id}/create-vm`)
-                                }
-                            >
-                                <PlusIcon />
-                            </IconButton>
-                        </Table.ColumnHeaderCell>
-                    </Table.Row>
-                </Table.Header>
+                <MachinesHeader
+                    onPlusClick={() => navigate(`/nodes/${id}/create-vm`)}
+                />
 
                 <Table.Body>
                     {data.data?.list?.map((resource) => {

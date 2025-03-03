@@ -45,8 +45,6 @@ export const CreateVolumeView: React.FC<unknown> = () => {
                                     Units.Bytes,
                                 );
 
-                                values.capacity = capacity;
-
                                 const input: CreateResourceInput = {
                                     owner_ref: {
                                         id: poolId!,
@@ -56,8 +54,8 @@ export const CreateVolumeView: React.FC<unknown> = () => {
                                     kind: ResourceKind.StorageVolume,
                                     spec: {
                                         name: values.name,
-                                        capacity: values.capacity,
-                                        allocation: values.capacity,
+                                        capacity: capacity,
+                                        allocation: capacity,
                                     },
                                 };
 
@@ -79,7 +77,7 @@ export const CreateVolumeView: React.FC<unknown> = () => {
                                             type="text"
                                             onChange={(e) =>
                                                 setFieldValue(
-                                                    "capacity",
+                                                    "name",
                                                     e.target.value,
                                                 )
                                             }

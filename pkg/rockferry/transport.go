@@ -31,11 +31,36 @@ func NewTransport(url string) (*Transport, error) {
 	return t, nil
 }
 
+func MapResource(unmapped *controllerapi.Resource) *Generic {
+	mapped := new(Generic)
+
+	// Map the resource
+	mapped.Id = unmapped.Id
+	mapped.Kind = ResourceKind(unmapped.Kind)
+
+	if unmapped.Owner != nil {
+		mapped.Owner = new(OwnerRef)
+		mapped.Owner.Id = unmapped.Owner.Id
+		mapped.Owner.Kind = unmapped.Owner.Kind
+	}
+	mapped.Phase = Phase(unmapped.Phase)
+
+	mapped.Annotations = unmapped.Annotations
+
+	mapped.RawStatus = unmapped.Status
+	mapped.RawSpec = unmapped.Spec
+
+	mapped.Spec, _ = convert.Convert[any](mapped.RawSpec)
+	mapped.Status, _ = convert.Convert[any](mapped.RawStatus)
+
+	return mapped
+}
+
 func (t *Transport) C() controllerapi.ControllerApiClient {
 	return t.client
 }
 
-func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id string, owner *OwnerRef) (chan *Resource[any, any], error) {
+func (t *Transport) Watch(ctx context.Context, action WatchAction, kind ResourceKind, id string, owner *OwnerRef) (chan *Resource[any, any], error) {
 	api := t.C()
 
 	// Create the initial watch request
@@ -47,6 +72,7 @@ func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id
 	}
 
 	req.Action = controllerapi.WatchAction(action)
+	req.Action = action
 
 	// Create the channel to send updates
 	out := make(chan *Resource[any, any])
@@ -88,21 +114,7 @@ func (t *Transport) Watch(ctx context.Context, action int, kind ResourceKind, id
 					}
 
 					// Process the resource
-					unmapped := res.Resource
-					mapped := new(Resource[any, any])
-
-					// Map the resource
-					mapped.Id = unmapped.Id
-					mapped.Kind = ResourceKind(unmapped.Kind)
-
-					mapped.Owner = new(OwnerRef)
-					mapped.Owner.Id = unmapped.Owner.Id
-					mapped.Owner.Kind = unmapped.Owner.Kind
-
-					mapped.Annotations = unmapped.Annotations
-
-					mapped.RawStatus = unmapped.Status
-					mapped.RawSpec = unmapped.Spec
+					mapped := MapResource(res.Resource)
 
 					// Send the mapped resource to the channel
 					select {
@@ -188,22 +200,7 @@ func (t *Transport) List(ctx context.Context, kind ResourceKind, id string, owne
 	list := make([]*Resource[any, any], len(response.Resources))
 
 	for i, unmapped := range response.Resources {
-		mapped := new(Resource[any, any])
-
-		mapped.Id = unmapped.Id
-		mapped.Kind = ResourceKind(unmapped.Kind)
-		if unmapped.Owner != nil {
-			mapped.Owner = new(OwnerRef)
-			mapped.Owner.Id = unmapped.Owner.Id
-			mapped.Owner.Kind = unmapped.Owner.Kind
-		}
-
-		mapped.Annotations = unmapped.Annotations
-		mapped.RawStatus = unmapped.GetStatus()
-		mapped.RawSpec = unmapped.GetSpec()
-
-		list[i] = mapped
-
+		list[i] = MapResource(unmapped)
 	}
 
 	return list, nil
@@ -213,31 +210,12 @@ func (t *Transport) Create(ctx context.Context, in *Resource[any, any]) error {
 	api := t.C()
 
 	req := new(controllerapi.CreateRequest)
-	req.Resource = new(controllerapi.Resource)
 
-	req.Resource.Id = in.Id
-
-	req.Resource.Kind = string(in.Kind)
-	req.Resource.Annotations = in.Annotations
-
-	if in.Owner != nil {
-		req.Resource.Owner = new(controllerapi.Owner)
-		req.Resource.Owner.Id = in.Owner.Id
-		req.Resource.Owner.Kind = in.Owner.Kind
-	}
-
-	spec, err := convert.Outgoing(&in.Spec)
+	var err error
+	req.Resource, err = in.Transport()
 	if err != nil {
 		return err
 	}
-
-	status, err := convert.Outgoing(&in.Status)
-	if err != nil {
-		return err
-	}
-
-	req.Resource.Spec = spec
-	req.Resource.Status = status
 
 	_, err = api.Create(ctx, req)
 	return err

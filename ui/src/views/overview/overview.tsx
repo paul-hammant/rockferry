@@ -17,6 +17,7 @@ import { Resource, ResourceKind } from "../../types/resource";
 import { CopyIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { NodesTab } from "./nodes";
+import { ClustersTab } from "./clusters";
 
 export const Overview: React.FC<unknown> = () => {
     const data = useQuery({
@@ -94,7 +95,9 @@ export const Overview: React.FC<unknown> = () => {
                             <NodesTab />
                         </Tabs.Content>
 
-                        <Tabs.Content value="kubernetes-clusters"></Tabs.Content>
+                        <Tabs.Content value="kubernetes-clusters">
+                            <ClustersTab />
+                        </Tabs.Content>
                         <Tabs.Content value="vxlans"></Tabs.Content>
                     </Box>
                 </Tabs.Root>

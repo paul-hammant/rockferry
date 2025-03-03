@@ -6,9 +6,10 @@ import "google/protobuf/struct.proto";
 option go_package = "github.com/eskpil/rockferry/controllerapi";
 
 enum WatchAction {
-    PUT = 0;
-    DELETE = 1;
-    ALL = 2;
+    CREATE = 0;
+    UPDATE = 1;
+    DELETE = 2;
+    ALL = 3;
 }
 
 // TODO: Add filtering, now all resources returned are those
@@ -87,4 +88,5 @@ message Resource {
     optional Owner owner = 4;
     google.protobuf.Struct spec = 5;
     google.protobuf.Struct status = 6;
+    string phase = 7;
 }

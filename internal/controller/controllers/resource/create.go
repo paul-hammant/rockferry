@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/eskpil/rockferry/internal/controller/controllers/common"
-	"github.com/eskpil/rockferry/internal/controller/db"
 	"github.com/eskpil/rockferry/internal/controller/models"
+	"github.com/eskpil/rockferry/internal/controller/runtime"
+	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -16,7 +17,7 @@ import (
 type CreateResourceInput struct {
 	Annotations map[string]string   `json:"annotations"`
 	Kind        models.ResourceKind `json:"kind"`
-	OwnerRef    *models.OwnerRef    `json:"owner_ref"`
+	OwnerRef    *rockferry.OwnerRef `json:"owner_ref"`
 	Spec        any                 `json:"spec"`
 }
 
@@ -35,30 +36,19 @@ func Create() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, common.MalformedInput())
 		}
 
-		// TODO: Owner is expected to be nil at some stage, for example
-		// 		 when trying to create a vm and you do not care where,
-		// 		 a node needs to be allocated for both volume creation
-		// 		 and the vm.
-
-		resource := new(models.Resource)
+		resource := new(rockferry.Generic)
 
 		id := uuid.NewString()
-		if input.Kind == models.ResourceKindStorageVolume {
-			id = fmt.Sprintf("%s/%s", input.OwnerRef.Id, input.Spec.(map[string]interface{})["name"].(string))
-		}
 
 		resource.Id = id
 		resource.Owner = input.OwnerRef
 		resource.Kind = string(input.Kind)
 		resource.Annotations = input.Annotations
 		resource.Spec = input.Spec
-		resource.Status.Phase = models.PhaseRequested
 
-		path := fmt.Sprintf("%s/%s/%s", models.RootKey, resource.Kind, resource.Id)
+		r := runtime.ExtractRuntime(c)
 
-		db := db.Extract(c)
-
-		if _, err := db.Put(ctx, path, string(resource.Marshal())); err != nil {
+		if err := r.CreateResource(ctx, resource); err != nil {
 			fmt.Println(err)
 			return c.JSON(http.StatusInternalServerError, common.InternalServerError())
 		}

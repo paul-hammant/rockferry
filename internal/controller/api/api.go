@@ -1,33 +1,23 @@
 package api
 
 import (
-	"time"
-
 	"github.com/eskpil/rockferry/controllerapi"
+	"github.com/eskpil/rockferry/internal/controller/runtime"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type Controller struct {
 	controllerapi.UnimplementedControllerApiServer
 	Db *clientv3.Client
+	R  *runtime.Runtime
 }
 
-func New() (Controller, error) {
+func New(r *runtime.Runtime) (Controller, error) {
 	controller := new(Controller)
 
-	// TODO: Enable some kind of config
-	// TODO: Avoid multiple db connections
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{"localhost:2379"},
-		DialTimeout: 5 * time.Second,
-	})
+	controller.Db = r.Db
 
-	// TODO: Avoid panic
-	if err != nil {
-		panic(err)
-	}
-
-	controller.Db = cli
+	controller.R = r
 
 	return *controller, nil
 }

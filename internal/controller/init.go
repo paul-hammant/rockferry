@@ -31,7 +31,7 @@ func ensureInstance(ctx context.Context, db *clientv3.Client) error {
 		// 		 the wizard can detect that the status phase is requested and will fil out
 		// 		 all neccesary props.
 		instance.Spec.Name = "rockferry"
-		instance.Status.Phase = rockferry.PhaseCreated
+		instance.Phase = rockferry.PhaseCreated
 
 		bytes, err := instance.Marshal()
 		if err != nil {

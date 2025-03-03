@@ -81,6 +81,8 @@ func (t *CreateVolumeTask) Execute(ctx context.Context, executor *Executor) erro
 	}
 	pool := pools[0]
 
+	fmt.Println("creating storage volume for: ", t.Volume.Annotations["machinereq.name"])
+
 	name := t.Volume.Spec.Name
 	format := "raw"
 	capacity := t.Volume.Spec.Capacity

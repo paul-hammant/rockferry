@@ -32,9 +32,6 @@ func (c *Client) CreateVolume(poolName string, name string, format string, capac
 
 	volume.Target.Format.Type = format
 
-	volume.Annotations = new(storagevol.Annotations)
-	volume.Annotations.Id = uuid.NewString()
-
 	volumeXML, err := xml.Marshal(volume)
 	if err != nil {
 		return err
@@ -106,7 +103,7 @@ func (c *Client) QueryStorageVolumes() ([]*rockferry.StorageVolume, error) {
 			volume.Owner.Kind = rockferry.ResourceKindStoragePool
 			volume.Owner.Id = poolId.String()
 			volume.Kind = rockferry.ResourceKindStorageVolume
-			volume.Status.Phase = rockferry.PhaseCreated
+			volume.Phase = rockferry.PhaseCreated
 
 			volumeSpec, err := c.QueryVolumeSpec(pool.Name, name)
 			if err != nil {
@@ -183,7 +180,7 @@ func (c *Client) QueryStoragePools() ([]*rockferry.StoragePool, error) {
 		res.Spec = *storagePoolSpec
 
 		res.Kind = rockferry.ResourceKindStoragePool
-		res.Status.Phase = rockferry.PhaseCreated
+		res.Phase = rockferry.PhaseCreated
 
 		out = append(out, res)
 	}

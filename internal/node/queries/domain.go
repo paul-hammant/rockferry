@@ -3,6 +3,7 @@ package queries
 import (
 	"encoding/xml"
 	"fmt"
+	"net"
 	"strconv"
 
 	"github.com/digitalocean/go-libvirt"
@@ -133,17 +134,15 @@ func (c *Client) CreateDomain(id string, spec *spec.MachineSpec) error {
 
 	bytes, err := xml.Marshal(schema)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	returned, err := c.v.DomainCreateXML(string(bytes), 0)
+	dom, err := c.v.DomainDefineXML(string(bytes))
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	_ = returned
-
-	return nil
+	return c.v.DomainCreate(dom)
 }
 
 func (c *Client) DestroyDomain(id string) error {
@@ -235,10 +234,21 @@ func (c *Client) SyncDomainStatus(id string) (*spec.MachineStatus, error) {
 	status.Interfaces = make([]spec.MachineStatusInterface, len(interfaces))
 
 	for i, iface := range interfaces {
-		addrs := []string{}
+		addrs := []spec.MachineStatusIp{}
 
 		for _, a := range iface.Addrs {
-			addrs = append(addrs, fmt.Sprintf("%s/%d", a.Addr, a.Prefix))
+			ip := net.ParseIP(a.Addr)
+
+			addr := spec.MachineStatusIp{
+				Ip:      ip.String(),
+				Private: ip.IsPrivate(),
+			}
+
+			if addr.Private {
+				status.ReachableIps = append(status.ReachableIps, addr)
+			}
+
+			addrs = append(addrs, addr)
 		}
 
 		status.Interfaces[i] = spec.MachineStatusInterface{

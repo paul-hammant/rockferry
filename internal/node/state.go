@@ -88,19 +88,19 @@ func (s *State) startupTasks() error {
 func (s *State) watchMachineRequests(ctx context.Context) error {
 	go func() {
 		requests, err := s.Client.MachineRequests().List(ctx, "", nil)
-		if err != nil {
+		if err != nil && !status.Is(err, status.ErrNoResults) {
 			return
 		}
 
 		for _, req := range requests {
-			if req.Status.Phase == rockferry.PhaseRequested {
+			if req.Phase == rockferry.PhaseRequested {
 				task := new(tasks.CreateVirtualMachineTask)
 				task.Request = req
 				s.t.AppendBound(task)
 			}
 		}
 
-		stream, err := s.Client.MachineRequests().Watch(ctx, rockferry.WatchActionPut, "", nil)
+		stream, err := s.Client.MachineRequests().Watch(ctx, rockferry.WatchActionUpdate, "", nil)
 		if err != nil {
 			return
 		}
@@ -108,7 +108,7 @@ func (s *State) watchMachineRequests(ctx context.Context) error {
 		for {
 			req := <-stream
 
-			if req.Status.Phase == rockferry.PhaseRequested {
+			if req.Phase == rockferry.PhaseRequested {
 				task := new(tasks.CreateVirtualMachineTask)
 				task.Request = req
 				s.t.AppendBound(task)
@@ -145,7 +145,7 @@ func (s *State) watchStorageVolumes(ctx context.Context) error {
 	}
 
 	for _, vol := range volumes {
-		if vol.Status.Phase == rockferry.PhaseRequested {
+		if vol.Phase == rockferry.PhaseRequested {
 			task := new(tasks.CreateVolumeTask)
 			task.Volume = vol
 			s.t.AppendBound(task)
@@ -154,7 +154,7 @@ func (s *State) watchStorageVolumes(ctx context.Context) error {
 
 	// TODO: Combine?
 	go func() {
-		stream, err := s.Client.StorageVolumes().Watch(ctx, rockferry.WatchActionPut, "", nil)
+		stream, err := s.Client.StorageVolumes().Watch(ctx, rockferry.WatchActionCreate, "", nil)
 		if err != nil {
 			return
 		}
@@ -162,7 +162,7 @@ func (s *State) watchStorageVolumes(ctx context.Context) error {
 		for {
 			vol := <-stream
 
-			if vol.Status.Phase == rockferry.PhaseRequested {
+			if vol.Phase == rockferry.PhaseRequested {
 				task := new(tasks.CreateVolumeTask)
 				task.Volume = vol
 				s.t.AppendBound(task)

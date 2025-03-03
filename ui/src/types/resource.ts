@@ -6,6 +6,8 @@ export enum ResourceKind {
     Machine = "machine",
     MachineRequest = "machinerequest",
     Instance = "instance",
+    Cluster = "cluster",
+    ClusterRequest = "clusterrequest",
 }
 
 export enum Phase {

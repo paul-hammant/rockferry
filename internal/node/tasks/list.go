@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/eskpil/rockferry/internal/node/queries"
@@ -82,36 +83,24 @@ func (t *TaskList) executeUnbound(ctx context.Context, task Task) {
 
 }
 
-func (t *TaskList) setResourcePhase(ctx context.Context, original *rockferry.Resource[any, any], phase rockferry.Phase, error string) error {
+func (t *TaskList) setResourcePhase(ctx context.Context, original *rockferry.Resource[any, any], phase rockferry.Phase) error {
 	generic := t.e.Rockferry.Generic(rockferry.ResourceKindAll)
 
-	// All this type casting is a major hack.
-
-	original.Status = original.Status.(rockferry.DefaultStatus)
-	copy := new(rockferry.Resource[any, any])
+	copy := new(rockferry.Generic)
 	*copy = *original
+	copy.Phase = phase
 
-	status := new(rockferry.DefaultStatus)
-
-	status.Phase = phase
-	if error != "" && phase == rockferry.PhaseErrored {
-		status.Error = new(string)
-		*status.Error = error
-	}
-	copy.Status = *status
-	copy.Status = copy.Status.(rockferry.DefaultStatus)
-
-	err := generic.Patch(ctx, original, copy)
-	return err
+	return generic.Patch(ctx, original, copy)
 }
 
 func (t *TaskList) executeBound(ctx context.Context, task BoundTask) {
 	if err := task.Execute(ctx, t.e); err != nil {
+		fmt.Println(reflect.TypeOf(task).String())
 		fmt.Println("task returned error", err)
 	}
 
-	if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseCreated, ""); err != nil {
-		panic(err)
+	if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseCreated); err != nil {
+		fmt.Println(err)
 	}
 
 }

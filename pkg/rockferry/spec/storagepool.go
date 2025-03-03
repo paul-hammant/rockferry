@@ -14,7 +14,7 @@ type StoragePoolSpecSourceAuth struct {
 type StoragePoolSpecSource struct {
 	Name  string                       `json:"name"`
 	Hosts []*StoragePoolSpecSourceHost `json:"hosts,omitempty"`
-	Auth  *StoragePoolSpecSourceAuth   `json:"auth"`
+	Auth  *StoragePoolSpecSourceAuth   `json:"auth,omitempty"`
 }
 
 type StoragePoolSpec struct {
@@ -24,5 +24,5 @@ type StoragePoolSpec struct {
 	Allocation uint64 `json:"allocation"`
 	Available  uint64 `json:"available"`
 
-	Source *StoragePoolSpecSource `json:"source"`
+	Source *StoragePoolSpecSource `json:"source,omitempty"`
 }

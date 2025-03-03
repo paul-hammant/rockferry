@@ -55,10 +55,15 @@ type MachineStatusVNC struct {
 	Type MachineStatusVNCType `json:"type"`
 }
 
+type MachineStatusIp struct {
+	Ip      string `json:"ip"`
+	Private bool   `json:"private"`
+}
+
 type MachineStatusInterface struct {
-	Name  string   `json:"name"`
-	Mac   string   `json:"mac"`
-	Addrs []string `json:"addrs"`
+	Name  string            `json:"name"`
+	Mac   string            `json:"mac"`
+	Addrs []MachineStatusIp `json:"addrs"`
 }
 
 type MachineStatus struct {
@@ -67,4 +72,6 @@ type MachineStatus struct {
 
 	VNC        []MachineStatusVNC       `json:"vnc"`
 	Interfaces []MachineStatusInterface `json:"interfaces"`
+
+	ReachableIps []MachineStatusIp `json:"reachable_ips"`
 }
