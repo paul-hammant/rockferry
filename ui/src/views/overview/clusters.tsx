@@ -75,14 +75,14 @@ export const ClustersTab: React.FC<unknown> = () => {
                         const workers = resource.spec!.nodes
                             ? resource.spec!.nodes.filter(
                                   (node) => node.kind == ClusterNodeKind.Worker,
-                              )
+                              ).length
                             : 0;
 
                         const controlPlanes = resource.spec!.nodes
                             ? resource.spec!.nodes.filter(
                                   (node) =>
                                       node.kind == ClusterNodeKind.ControlPlane,
-                              )
+                              ).length
                             : 0;
 
                         return (
@@ -102,12 +102,12 @@ export const ClustersTab: React.FC<unknown> = () => {
                                 </Table.RowHeaderCell>
                                 <Table.RowHeaderCell>
                                     <Badge color="purple">
-                                        <Text>{workers.length}</Text>
+                                        <Text>{workers}</Text>
                                     </Badge>
                                 </Table.RowHeaderCell>
                                 <Table.RowHeaderCell>
                                     <Badge color="purple">
-                                        <Text>{controlPlanes.length}</Text>
+                                        <Text>{controlPlanes}</Text>
                                     </Badge>
                                 </Table.RowHeaderCell>
                                 <Table.RowHeaderCell>

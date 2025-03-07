@@ -61,7 +61,7 @@ export const VncConsole: React.FC<Props> = ({ vm, node }) => {
             scaleViewport
             debug
             style={{
-                height: "75vh",
+                height: "45vh",
             }}
             onCredentialsRequired={(o) => {
                 const credentials = {

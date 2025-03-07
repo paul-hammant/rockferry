@@ -44,8 +44,24 @@ func (c *Client) CreateDomain(id string, spec *spec.MachineSpec) error {
 	schema.OS.Type.Machine = "pc-q35-7.2"
 	schema.OS.Type.OS = "hvm"
 
-	schema.OS.BootOrder = append(schema.OS.BootOrder, domain.Boot{Dev: "hd"})
-	schema.OS.BootOrder = append(schema.OS.BootOrder, domain.Boot{Dev: "cdrom"})
+	for _, e := range spec.Boot.Order {
+		schema.OS.BootOrder = append(schema.OS.BootOrder, domain.Boot{Dev: e})
+	}
+
+	if spec.Boot.Kernel != nil && spec.Boot.Initramfs != nil {
+		schema.OS.Initrd = *spec.Boot.Initramfs
+		schema.OS.Kernel = *spec.Boot.Kernel
+		if spec.Boot.Cmdline != nil {
+			schema.OS.KernelArgs = *spec.Boot.Cmdline
+		}
+	}
+
+	schema.SysInfo = new(domain.SysInfo)
+	schema.SysInfo.Type = "smbios"
+	schema.SysInfo.System = append(schema.SysInfo.System, domain.Entry{Name: "manufacturer", Value: "rockferry"})
+	schema.SysInfo.System = append(schema.SysInfo.System, domain.Entry{Name: "product", Value: "rockferry"})
+	schema.SysInfo.System = append(schema.SysInfo.System, domain.Entry{Name: "version", Value: "alpha-1"})
+	schema.SysInfo.System = append(schema.SysInfo.System, domain.Entry{Name: "uuid", Value: id})
 
 	for _, d := range spec.Disks {
 		disk := new(domain.Disk)
@@ -167,6 +183,31 @@ func (c *Client) DomainExists(id string) bool {
 	return true
 }
 
+func (c *Client) GetDomainState(id string) (spec.MachineStatusState, error) {
+	domId := uuid.MustParse(id)
+
+	dom, err := c.v.DomainLookupByUUID(libvirt.UUID(domId))
+	if err != nil {
+		return "", err
+	}
+
+	state, _, err := c.v.DomainGetState(dom, 0)
+	switch state {
+	case 1:
+		{
+			return spec.MachineStatusStateRunning, nil
+		}
+	case 6:
+		{
+			return spec.MachineStatusStateCrashed, nil
+		}
+	default:
+		{
+			return spec.MachineStatusStateStopped, nil
+		}
+	}
+}
+
 func (c *Client) SyncDomainStatus(id string) (*spec.MachineStatus, error) {
 	status := new(spec.MachineStatus)
 
@@ -259,4 +300,26 @@ func (c *Client) SyncDomainStatus(id string) (*spec.MachineStatus, error) {
 	}
 
 	return status, nil
+}
+
+func (c *Client) StartDomain(id string) error {
+	domId := uuid.MustParse(id)
+
+	dom, err := c.v.DomainLookupByUUID(libvirt.UUID(domId))
+	if err != nil {
+		return err
+	}
+
+	return c.v.DomainCreate(dom)
+}
+
+func (c *Client) ShutdownDomain(id string) error {
+	domId := uuid.MustParse(id)
+
+	dom, err := c.v.DomainLookupByUUID(libvirt.UUID(domId))
+	if err != nil {
+		return err
+	}
+
+	return c.v.DomainShutdownFlags(dom, 0)
 }

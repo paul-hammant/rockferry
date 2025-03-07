@@ -32,6 +32,10 @@ func (c *Client) CreateVolume(poolName string, name string, format string, capac
 
 	volume.Target.Format.Type = format
 
+	volume.Target.Permissions.Mode = "0600"
+	volume.Target.Permissions.Group = 64055
+	volume.Target.Permissions.Owner = 64055
+
 	volumeXML, err := xml.Marshal(volume)
 	if err != nil {
 		return err

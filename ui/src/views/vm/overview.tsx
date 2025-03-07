@@ -1,8 +1,16 @@
 import { useNavigate, useParams } from "react-router";
-import { Resource, ResourceKind } from "../../types/resource";
+import {
+    PatchResourceInput,
+    Resource,
+    ResourceKind,
+} from "../../types/resource";
 import { Machine, MachineStatus } from "../../types/machine";
 import { Node } from "../../types/node";
-import { useQuery } from "@tanstack/react-query";
+import {
+    UseMutateFunction,
+    useMutation,
+    useQuery,
+} from "@tanstack/react-query";
 import { get } from "../../data/queries/get";
 import {
     Box,
@@ -17,10 +25,74 @@ import {
     IconButton,
     Separator,
 } from "@radix-ui/themes";
-import { useEffect, useState } from "react";
 import { CopyIcon } from "@radix-ui/react-icons";
 import { convert, Units } from "../../utils/conversion";
 import { VncConsole } from "./vnc-console";
+import { Button } from "@radix-ui/themes/src/index.js";
+import { useTabState } from "../../hooks/tabstate";
+import { Devices } from "./devices";
+import * as jsonpatch from "fast-json-patch";
+import { patch } from "../../data/mutations/patch";
+import { ToastContainer, toast } from "react-toastify";
+import { StateToast } from "./notification";
+
+// TODO: react-toastify sucks ass
+
+const startVm = (
+    vm: Resource<Machine, MachineStatus>,
+    mutate: UseMutateFunction<Response, Error, PatchResourceInput, unknown>,
+) => {
+    const observer = jsonpatch.observe<Resource<Machine, MachineStatus>>(vm);
+    vm.status.state = "booting";
+    const patches = jsonpatch.generate(observer);
+    mutate(
+        { id: vm.id, kind: vm.kind, patches },
+        {
+            onSuccess: () => {
+                toast.success(StateToast, {
+                    data: {
+                        content: `starting: ${vm.spec!.name}`,
+                    },
+                    className: "border-2 border-green-400",
+                    icon: false,
+                    autoClose: 1500,
+                    hideProgressBar: true,
+                    closeButton: true,
+                    closeOnClick: true,
+                    theme: "dark",
+                });
+            },
+        },
+    );
+};
+
+const shutdownVm = (
+    vm: Resource<Machine, MachineStatus>,
+    mutate: UseMutateFunction<Response, Error, PatchResourceInput, unknown>,
+) => {
+    const observer = jsonpatch.observe<Resource<Machine, MachineStatus>>(vm);
+    vm.status.state = "stopped";
+    const patches = jsonpatch.generate(observer);
+    mutate(
+        { id: vm.id, kind: vm.kind, patches },
+        {
+            onSuccess: () => {
+                toast.success(StateToast, {
+                    data: {
+                        content: `shutdown: ${vm.spec!.name}`,
+                    },
+                    className: "border-2 border-red-400",
+                    icon: false,
+                    autoClose: 1500,
+                    hideProgressBar: true,
+                    closeButton: true,
+                    closeOnClick: true,
+                    theme: "dark",
+                });
+            },
+        },
+    );
+};
 
 const Title: React.FC<{
     vm: Resource<Machine, MachineStatus>;
@@ -33,7 +105,7 @@ const Title: React.FC<{
             <Text
                 className="hover:cursor-pointer"
                 color="purple"
-                onClick={() => navigate(`/nodes/${node.id}`)}
+                onClick={() => navigate(`/nodes/${node.id}?tab=vms`)}
             >
                 <Text size="6">{node.spec?.hostname}</Text>
             </Text>
@@ -48,6 +120,11 @@ const Title: React.FC<{
 const VmMetadata: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
     vm,
 }) => {
+    const { mutate } = useMutation({
+        mutationKey: ["machine", vm.id],
+        mutationFn: patch,
+    });
+
     return (
         <Card>
             <DataList.Root>
@@ -109,28 +186,34 @@ const VmMetadata: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
                 </DataList.Item>
             </DataList.Root>
             <Separator size="4" mt="3" mb="3" />
-            <DataList.Root>
-                {Object.entries(vm.annotations!).map((o) => (
-                    <DataList.Item key={o[0]}>
-                        <DataList.Label minWidth="88px">
-                            <Text size="2">{o[0]}</Text>
-                        </DataList.Label>
-                        <DataList.Value>
-                            <Flex align="center" gap="2">
-                                <Code variant="ghost">{o[1]}</Code>
-                                <IconButton
-                                    size="1"
-                                    aria-label="Copy value"
-                                    color="gray"
-                                    variant="ghost"
-                                >
-                                    <CopyIcon />
-                                </IconButton>
-                            </Flex>
-                        </DataList.Value>
-                    </DataList.Item>
-                ))}
-            </DataList.Root>
+
+            {vm.status.state === "stopped" ? (
+                <Flex mt="3" gap="3">
+                    <Button
+                        color="purple"
+                        variant="soft"
+                        onClick={() => startVm(vm, mutate)}
+                    >
+                        Start
+                    </Button>
+                </Flex>
+            ) : (
+                <Flex mt="3" gap="3">
+                    <Button color="red" variant="soft">
+                        Reboot
+                    </Button>
+                    <Button
+                        color="red"
+                        variant="soft"
+                        onClick={() => shutdownVm(vm, mutate)}
+                    >
+                        Shutdown
+                    </Button>
+                    <Button color="red" variant="soft">
+                        Stop
+                    </Button>
+                </Flex>
+            )}
         </Card>
     );
 };
@@ -147,14 +230,7 @@ const VmTabs: React.FC<{
         queryFn: () => get<Node>(vm.owner!.id!, ResourceKind.Node),
     });
 
-    const tabKey = `${vm.id}/tab`;
-    const [tab, setTab] = useState<string>(() => {
-        return localStorage.getItem(tabKey) || "overview";
-    });
-
-    useEffect(() => {
-        localStorage.setItem(tabKey, tab);
-    }, [tab, tabKey]);
+    const [tab, setTab] = useTabState("overview");
 
     if (isLoading) {
         return <div>loading..</div>;
@@ -189,7 +265,14 @@ const VmTabs: React.FC<{
                             <Grid columns="3" gap="4">
                                 <Box gridColumn="1/3">
                                     <Card size="2">
-                                        <VncConsole vm={vm} node={node!} />
+                                        {vm.status.state != "running" ? (
+                                            <Text color="red">
+                                                Virtual Machine must be running
+                                                for VNC console to work.
+                                            </Text>
+                                        ) : (
+                                            <VncConsole vm={vm} node={node!} />
+                                        )}
                                     </Card>
                                 </Box>
                                 <Box gridColumnStart="3">
@@ -198,7 +281,9 @@ const VmTabs: React.FC<{
                             </Grid>
                         </Tabs.Content>
 
-                        <Tabs.Content value="devices"></Tabs.Content>
+                        <Tabs.Content value="devices">
+                            <Devices vm={vm} />
+                        </Tabs.Content>
                     </Box>
                 </Tabs.Root>
             </Box>
@@ -222,5 +307,10 @@ export const VmOverview: React.FC<unknown> = () => {
         return <div>loading..</div>;
     }
 
-    return <VmTabs vm={vm.data!} />;
+    return (
+        <>
+            <VmTabs vm={vm.data!} />
+            <ToastContainer position="bottom-right" />
+        </>
+    );
 };

@@ -31,17 +31,38 @@ func (i *Interface[S, T]) List(ctx context.Context, id string, owner *OwnerRef) 
 	return out, nil
 }
 
-func (i *Interface[S, T]) Watch(ctx context.Context, action WatchAction, id string, owner *OwnerRef) (chan *Resource[S, T], error) {
+func (i *Interface[S, T]) Get(ctx context.Context, id string, owner *OwnerRef) (*Resource[S, T], error) {
+	list, err := i.List(ctx, id, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(list) > 1 {
+		return nil, ErrorUnexpectedResults
+	}
+
+	return list[0], nil
+}
+
+func (i *Interface[S, T]) Watch(ctx context.Context, action WatchAction, id string, owner *OwnerRef) (chan *WatchEvent[S, T], error) {
 	in, err := i.t.Watch(ctx, action, i.kind, id, owner)
 	if err != nil {
 		return nil, err
 	}
 
-	out := make(chan *Resource[S, T])
+	out := make(chan *WatchEvent[S, T])
 
 	go func() {
 		for {
-			out <- Cast[S, T](<-in)
+			unmapped := <-in
+
+			mapped := new(WatchEvent[S, T])
+			mapped.Resource = Cast[S, T](unmapped.Resource)
+			if unmapped.Prev != nil {
+				mapped.Prev = Cast[S, T](unmapped.Prev)
+			}
+
+			out <- mapped
 		}
 	}()
 

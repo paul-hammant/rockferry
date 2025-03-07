@@ -10,8 +10,12 @@ import { useNavigate } from "react-router";
 import { Node } from "../../types/node";
 import { Volume } from "../../types/volume";
 import { Card } from "@radix-ui/themes/src/index.js";
+import { MakeDefault } from "./make-default";
 
-const Title: React.FC<{ pool: Resource<Pool> }> = ({ pool }) => {
+const Title: React.FC<{ pool: Resource<Pool>; isDefault: boolean }> = ({
+    pool,
+    isDefault,
+}) => {
     const navigate = useNavigate();
 
     const node = useQuery({
@@ -33,14 +37,21 @@ const Title: React.FC<{ pool: Resource<Pool> }> = ({ pool }) => {
             <Text
                 className="hover:cursor-pointer"
                 color="purple"
-                onClick={() => navigate(`/nodes/${node.data!.id}`)}
+                onClick={() =>
+                    navigate(`/nodes/${node.data!.id}?tab=hypervisor`)
+                }
             >
                 <Text size="6">{node.data?.spec?.hostname}</Text>
             </Text>
             <Text size="5" mr="1" ml="1">
                 /
             </Text>
-            <Text size="6">{pool.spec?.name}</Text>
+            <Text size="6">{pool.spec?.name}</Text>{" "}
+            {isDefault ? (
+                <Text size="5" weight="light">
+                    (default)
+                </Text>
+            ) : undefined}
         </Box>
     );
 };
@@ -73,9 +84,18 @@ export const PoolView: React.FC<unknown> = () => {
         return <p>loading</p>;
     }
 
+    let isDefault = false;
+
+    if (
+        pool.data!.annotations &&
+        pool.data!.annotations["rockferry.default"] == "yes"
+    ) {
+        isDefault = true;
+    }
+
     return (
         <Box p="9" width="100%">
-            <Title pool={pool.data!} />
+            <Title pool={pool.data!} isDefault={isDefault} />
             <Box width="100%" pt="2">
                 <Separator size="4" />
             </Box>
@@ -99,6 +119,7 @@ export const PoolView: React.FC<unknown> = () => {
                 >
                     Upload
                 </Button>
+                <MakeDefault isDefault={isDefault} pool={pool.data!} />
             </Box>
             <Card mt="3">
                 <Table.Root layout="auto">

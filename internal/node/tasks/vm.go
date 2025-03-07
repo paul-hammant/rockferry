@@ -3,13 +3,47 @@ package tasks
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/eskpil/rockferry/pkg/mac"
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/google/uuid"
+	"github.com/r3labs/diff"
+	"github.com/siderolabs/go-pointer"
 )
+
+func ensurePath(p string) error {
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
+		return err
+	}
+	return nil
+}
+
+func downloadFile(dst string, remote string) error {
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	resp, err := http.Get(remote)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 type CreateVirtualMachineTask struct {
 	Request *rockferry.MachineRequest
@@ -50,16 +84,18 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 		disks = append(disks, d)
 	}
 
-	// TODO: CDROM can be network disk as well
-	cdrom := new(spec.MachineSpecDisk)
+	if t.Request.Spec.Cdrom.Key != "" {
+		// TODO: CDROM can be network disk as well
+		cdrom := new(spec.MachineSpecDisk)
 
-	cdrom.Key = t.Request.Spec.Cdrom.Key
-	// This could probably be more clean
-	cdrom.File = new(spec.MachineSpecDiskFile)
-	cdrom.Device = "cdrom"
-	cdrom.Type = "file"
+		cdrom.Key = t.Request.Spec.Cdrom.Key
+		// This could probably be more clean
+		cdrom.File = new(spec.MachineSpecDiskFile)
+		cdrom.Device = "cdrom"
+		cdrom.Type = "file"
 
-	disks = append(disks, cdrom)
+		disks = append(disks, cdrom)
+	}
 
 	return disks, nil
 }
@@ -92,11 +128,45 @@ func (t *CreateVirtualMachineTask) createNetworkInterfaces(ctx context.Context, 
 	return interfaces, nil
 }
 
+func (t *CreateVirtualMachineTask) downloadPossibleResources(machineSpec *spec.MachineSpec) error {
+	basePath := fmt.Sprintf("/var/rockferry/assets")
+
+	if err := ensurePath(basePath); err != nil {
+		return err
+	}
+
+	for k, v := range t.Request.Annotations {
+		if k == "kernel.download" {
+			// /var/rockferry/assets/${UUID}
+			path := fmt.Sprintf("%s/%s", basePath, uuid.NewString())
+			if err := downloadFile(path, v); err != nil {
+				return err
+			}
+
+			machineSpec.Boot.Kernel = pointer.To(path)
+		}
+
+		if k == "initramfs.download" {
+			// /var/rockferry/assets/${UUID}
+			path := fmt.Sprintf("%s/%s", basePath, uuid.NewString())
+			if err := downloadFile(path, v); err != nil {
+				return err
+			}
+
+			machineSpec.Boot.Initramfs = pointer.To(path)
+		}
+
+		if k == "kernel.cmdline" {
+			machineSpec.Boot.Cmdline = pointer.To(v)
+		}
+	}
+
+	return nil
+}
+
 func (t *CreateVirtualMachineTask) Execute(ctx context.Context, executor *Executor) error {
 	// NOTE: Used to annotate storage volumes with the vm id. This is useful for deletion.
 	vmId := uuid.NewString()
-
-	fmt.Println("creating vm", t.Request.Spec.Name)
 
 	disks, err := t.createVmDisks(ctx, executor)
 	if err != nil {
@@ -109,6 +179,12 @@ func (t *CreateVirtualMachineTask) Execute(ctx context.Context, executor *Execut
 	}
 
 	machineSpec := new(spec.MachineSpec)
+
+	if err := t.downloadPossibleResources(machineSpec); err != nil {
+		return err
+	}
+
+	machineSpec.Boot.Order = []string{"hd", "cdrom"}
 
 	machineSpec.Name = t.Request.Spec.Name
 	machineSpec.Topology = t.Request.Spec.Topology
@@ -174,7 +250,6 @@ type SyncMachineStatusesTask struct {
 }
 
 func (t *SyncMachineStatusesTask) Execute(ctx context.Context, e *Executor) error {
-	fmt.Println("executing sync machine statuses task")
 	iface := e.Rockferry.Machines()
 
 	owner := new(rockferry.OwnerRef)
@@ -215,4 +290,43 @@ func (t *SyncMachineStatusesTask) Execute(ctx context.Context, e *Executor) erro
 func (t *SyncMachineStatusesTask) Repeats() *time.Duration {
 	timeout := time.Second * 2
 	return &timeout
+}
+
+type UpdateVmTask struct {
+	Machine *rockferry.Machine
+	Prev    *rockferry.Machine
+}
+
+func (t *UpdateVmTask) Execute(ctx context.Context, e *Executor) error {
+	changes, err := diff.Diff(t.Machine, t.Prev)
+	if err != nil {
+		return err
+	}
+
+	for _, change := range changes {
+		path := strings.Join(change.Path, ".")
+		if change.Type == "update" && path == "Status.State" {
+			desired := change.To.(string)
+			current, err := e.Libvirt.GetDomainState(t.Machine.Id)
+			if err != nil {
+				return err
+			}
+
+			if current == spec.MachineStatusStateStopped && desired == spec.MachineStatusStateBooting {
+				fmt.Println("starting", t.Machine.Spec.Name)
+				return e.Libvirt.StartDomain(t.Machine.Id)
+			}
+
+			if current == spec.MachineStatusStateRunning && desired == spec.MachineStatusStateStopped {
+				fmt.Println("shutdown", t.Machine.Spec.Name)
+				return e.Libvirt.ShutdownDomain(t.Machine.Id)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (t *UpdateVmTask) Repeats() *time.Duration {
+	return nil
 }

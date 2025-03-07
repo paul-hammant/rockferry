@@ -45,7 +45,7 @@ type Format struct {
 type Permissions struct {
 	Owner int    `xml:"owner"`
 	Group int    `xml:"group"`
-	Mode  int    `xml:"mode"`
+	Mode  string `xml:"mode"`
 	Label string `xml:"label"`
 }
 

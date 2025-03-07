@@ -40,11 +40,18 @@ func (c Controller) Watch(req *controllerapi.WatchRequest, res grpc.ServerStream
 		select {
 		case <-canceled:
 			return status.Error(codes.Aborted, "stream closed")
-		case resource := <-stream:
+		case e := <-stream:
 			response := new(controllerapi.WatchResponse)
-			response.Resource, err = resource.Transport()
+			response.Resource, err = e.Resource.Transport()
 			if err != nil {
 				panic(err)
+			}
+
+			if e.Prev != nil {
+				response.PrevResource, err = e.Prev.Transport()
+				if err != nil {
+					panic(err)
+				}
 			}
 
 			if err := res.Send(response); err != nil {
@@ -140,6 +147,8 @@ func (c Controller) Patch(ctx context.Context, req *controllerapi.PatchRequest) 
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("patching: ", path)
 
 	_, err = c.Db.Put(ctx, path, string(modified))
 	if err != nil {

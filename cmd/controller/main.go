@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"log/slog"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
@@ -14,6 +16,8 @@ import (
 	"github.com/eskpil/rockferry/internal/controller/controllers/resource"
 	"github.com/eskpil/rockferry/internal/controller/db"
 	"github.com/eskpil/rockferry/internal/controller/runtime"
+	"github.com/eskpil/rockferry/pkg/rockferry"
+	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"google.golang.org/grpc"
@@ -87,8 +91,50 @@ func main() {
 		server.GET("/v1/resources", resource.List())
 		server.POST("v1/resources", resource.Create())
 		server.DELETE("/v1/resources", resource.Delete())
+		server.PATCH("/v1/resources", resource.Patch())
 
 		if err := server.Start("0.0.0.0:8080"); err != nil {
+			panic(err)
+		}
+	}(wg)
+
+	wg.Add(1)
+	go func(wg *sync.WaitGroup) {
+		server := echo.New()
+
+		server.Use(r.EchoMiddleware())
+		server.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"*"},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		}))
+
+		server.Use(db.Middleware())
+		server.POST("/machineconfig", func(c echo.Context) error {
+			uuid := c.Param("u")
+
+			fmt.Printf("fetching config for: %s: %s\n", uuid, c.Param("h"))
+
+			machine, err := r.Get(c.Request().Context(), rockferry.ResourceKindMachine, uuid, nil, nil)
+			if err != nil {
+				return c.String(http.StatusNotFound, "no machine")
+			}
+
+			machineReq, err := r.Get(c.Request().Context(), rockferry.ResourceKindMachineRequest, machine.Annotations["machinerequest.id"], nil, nil)
+			if err != nil {
+				return c.String(http.StatusNotFound, "not found")
+			}
+
+			resource, err := r.Get(c.Request().Context(), rockferry.ResourceKindCluster, machineReq.Annotations["cluster.id"], nil, nil)
+			if err != nil {
+				return err
+			}
+
+			cluster := rockferry.CastFromMap[spec.ClusterSpec, spec.ClusterStatus](resource)
+
+			return c.String(http.StatusOK, string(cluster.Spec.ControlPlaneConfig))
+		})
+
+		if err := server.Start("0.0.0.0:10000"); err != nil {
 			panic(err)
 		}
 	}(wg)

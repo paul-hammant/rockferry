@@ -7,6 +7,7 @@ export interface MachineDisk {
 }
 
 export interface MachineInterface {
+    bridge: string;
     mac: string;
     model: string;
     network: string;

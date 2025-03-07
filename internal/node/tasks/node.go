@@ -79,8 +79,6 @@ func readNodeCpu() (uint64, uint64, uint64, error) {
 }
 
 func (t *SyncNodeTask) Execute(ctx context.Context, e *Executor) error {
-	fmt.Println("executing sync node task")
-
 	nodes, err := e.Rockferry.Nodes().List(ctx, e.NodeId, nil)
 	if err != nil {
 		return err

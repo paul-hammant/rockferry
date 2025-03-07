@@ -15,6 +15,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type WatchEvent[T any, S any] struct {
+	Resource *Resource[T, S]
+	Prev     *Resource[T, S]
+}
+
 type Transport struct {
 	client controllerapi.ControllerApiClient
 }
@@ -60,7 +65,7 @@ func (t *Transport) C() controllerapi.ControllerApiClient {
 	return t.client
 }
 
-func (t *Transport) Watch(ctx context.Context, action WatchAction, kind ResourceKind, id string, owner *OwnerRef) (chan *Resource[any, any], error) {
+func (t *Transport) Watch(ctx context.Context, action WatchAction, kind ResourceKind, id string, owner *OwnerRef) (chan *WatchEvent[any, any], error) {
 	api := t.C()
 
 	// Create the initial watch request
@@ -75,7 +80,7 @@ func (t *Transport) Watch(ctx context.Context, action WatchAction, kind Resource
 	req.Action = action
 
 	// Create the channel to send updates
-	out := make(chan *Resource[any, any])
+	out := make(chan *WatchEvent[any, any])
 
 	// Function to start watching and handle reconnection
 	var watch func() error
@@ -113,12 +118,16 @@ func (t *Transport) Watch(ctx context.Context, action WatchAction, kind Resource
 						return
 					}
 
-					// Process the resource
-					mapped := MapResource(res.Resource)
+					event := new(WatchEvent[any, any])
+					event.Resource = MapResource(res.Resource)
+
+					if res.PrevResource != nil {
+						event.Prev = MapResource(res.PrevResource)
+					}
 
 					// Send the mapped resource to the channel
 					select {
-					case out <- mapped:
+					case out <- event:
 					case <-ctx.Done():
 						close(out)
 						return

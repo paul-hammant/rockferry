@@ -1,3 +1,5 @@
+import * as jsonpatch from "fast-json-patch";
+
 export enum ResourceKind {
     Node = "node",
     StoragePool = "storagepool",
@@ -47,4 +49,10 @@ export interface CreateResourceInput {
 export interface DeleteResourceInput {
     kind: ResourceKind;
     id: string;
+}
+
+export interface PatchResourceInput {
+    kind: ResourceKind;
+    id: string;
+    patches: jsonpatch.Operation[];
 }

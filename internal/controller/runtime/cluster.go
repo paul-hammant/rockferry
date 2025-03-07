@@ -48,9 +48,9 @@ func (r *Runtime) AccumulateControlPlanes(ctx context.Context, machinerequests [
 			{
 				return nil, fmt.Errorf("stream closed")
 			}
-		case r := <-stream:
+		case e := <-stream:
 			{
-				machine := rockferry.CastFromMap[spec.MachineSpec, spec.MachineStatus](r)
+				machine := rockferry.CastFromMap[spec.MachineSpec, spec.MachineStatus](e.Resource)
 
 				if machine.Status.State != spec.MachineStatusStateRunning {
 					continue
@@ -174,7 +174,8 @@ func (r *Runtime) CreateClusterResource(ctx context.Context, request *rockferry.
 func (r *Runtime) AllocateTalosConfig(ctx context.Context, cluster *rockferry.Cluster, request *rockferry.ClusterRequest, cps []string) error {
 	opts := []generate.Option{}
 
-	opts = append(opts, generate.WithInstallDisk("/dev/vda"))
+	// Need something to determine wheter to use /dev/vda or /dev/sda
+	opts = append(opts, generate.WithInstallDisk("/dev/sda"))
 	opts = append(opts, generate.WithAllowSchedulingOnControlPlanes(true))
 
 	// TODO: Allocate VIP somehow?
@@ -318,15 +319,19 @@ func (r *Runtime) AllocateKubernetesCluster(ctx context.Context, request *rockfe
 		machinereq.Annotations = map[string]string{}
 		machinereq.Annotations["clusterrequest.id"] = request.Id
 		machinereq.Annotations["clusterrequest.name"] = request.Spec.Name
+		machinereq.Annotations["cluster.id"] = cluster.Id
+
+		// TODO: Do not hardcode. Actually talk to a image factory instance and
+		// 		 create a schematic
+		machinereq.Annotations["kernel.download"] = "https://factory.talos.dev/image/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515/v1.9.4/kernel-amd64"
+		machinereq.Annotations["initramfs.download"] = "https://factory.talos.dev/image/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515/v1.9.4/initramfs-amd64.xz"
+		machinereq.Annotations["kernel.cmdline"] = "talos.platform=metal console=tty0 init_on_alloc=1 slab_nomerge pti=on consoleblank=0 nvme_core.io_timeout=4294967295 printk.devkmsg=on ima_template=ima-ng ima_appraise=fix ima_hash=sha512"
 
 		machinereq.Spec.Topology = cp.Topology
 
 		machinereq.Spec.Name = fmt.Sprintf("%s-cp%d", request.Spec.Name, i)
 
 		machinereq.Spec.Cdrom = new(spec.MachineRequestSpecCdrom)
-
-		// TODO: Do not hardcode
-		machinereq.Spec.Cdrom.Key = "/var/lib/libvirt/isos/talos.iso"
 
 		machinereq.Spec.Disks = []*spec.MachineRequestSpecDisk{}
 

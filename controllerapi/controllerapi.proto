@@ -24,6 +24,7 @@ message WatchRequest {
 
 message WatchResponse {
     Resource resource = 1;
+    optional Resource prev_resource = 2;
 }
 
 message ListRequest {

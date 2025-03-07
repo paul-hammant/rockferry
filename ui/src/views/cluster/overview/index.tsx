@@ -1,12 +1,55 @@
-import { Box, Card, Grid, Tabs, Text } from "@radix-ui/themes";
+import { Badge, Box, Card, DataList, Grid, Tabs, Text } from "@radix-ui/themes";
 import { useNavigate, useParams } from "react-router";
 import { Cluster, ClusterStatus } from "../../../types/cluster";
 import { Resource, ResourceKind } from "../../../types/resource";
 import { useQuery } from "@tanstack/react-query";
 import { get } from "../../../data/queries/get";
-import { useEffect, useState } from "react";
 import { MachinesTab } from "./machines";
-import { ConfigTab, TalosConfigTab } from "./talosconfig";
+import { ConfigTab } from "./talosconfig";
+import { useTabState } from "../../../hooks/tabstate";
+
+const InfoPane: React.FC<{
+    cluster: Resource<Cluster, ClusterStatus>;
+}> = ({ cluster }) => {
+    return (
+        <Card size="2">
+            <DataList.Root>
+                <DataList.Item align="center">
+                    <DataList.Label minWidth="88px">Name</DataList.Label>
+                    <DataList.Value>{cluster.spec!.name}</DataList.Value>
+                </DataList.Item>
+                <DataList.Item align="center">
+                    <DataList.Label minWidth="88px">Status</DataList.Label>
+                    <DataList.Value>
+                        <Badge color="jade" variant="soft" radius="full">
+                            {cluster.status.state}
+                        </Badge>
+                    </DataList.Value>
+                </DataList.Item>
+                <DataList.Item align="center">
+                    <DataList.Label minWidth="88px">
+                        Kubernetes Version
+                    </DataList.Label>
+                    <DataList.Value>
+                        <Badge color="amber" variant="soft" radius="full">
+                            v{cluster.spec?.kubernetes_version}
+                        </Badge>
+                    </DataList.Value>
+                </DataList.Item>
+                <DataList.Item align="center">
+                    <DataList.Label minWidth="88px">
+                        Talos Version
+                    </DataList.Label>
+                    <DataList.Value>
+                        <Badge color="amber" variant="soft" radius="full">
+                            v1.9.4
+                        </Badge>
+                    </DataList.Value>
+                </DataList.Item>
+            </DataList.Root>
+        </Card>
+    );
+};
 
 // TODO: Do not hardcode instance name as rockferry
 const Title: React.FC<{
@@ -39,14 +82,7 @@ export const ClusterOverview: React.FC<unknown> = () => {
         queryFn: () => get<Cluster, ClusterStatus>(id!, ResourceKind.Cluster),
     });
 
-    const tabKey = `${id}/tab`;
-    const [tab, setTab] = useState<string>(() => {
-        return localStorage.getItem(tabKey) || "overview";
-    });
-
-    useEffect(() => {
-        localStorage.setItem(tabKey, tab);
-    }, [tab, tabKey]);
+    const [tab, setTab] = useTabState("overview");
 
     if (cluster.isError) {
         return <div>error</div>;
@@ -100,7 +136,7 @@ export const ClusterOverview: React.FC<unknown> = () => {
                                     <Card size="2"></Card>
                                 </Box>
                                 <Box gridColumnStart="3">
-                                    <Card size="2"></Card>
+                                    <InfoPane cluster={cluster.data!} />
                                 </Box>
                             </Grid>
                         </Tabs.Content>

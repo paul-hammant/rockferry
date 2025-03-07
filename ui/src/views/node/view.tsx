@@ -14,16 +14,15 @@ import {
 import { PoolsView } from "./pools";
 import { useNavigate, useParams } from "react-router";
 import { VmsView } from "./vms";
-import { PieChart } from "@mui/x-charts";
 import { get } from "../../data/queries/get";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import { Node } from "../../types/node";
 import { Resource, ResourceKind } from "../../types/resource";
 import { CopyIcon } from "@radix-ui/react-icons";
 import { convert, Units } from "../../utils/conversion";
 import { Instance } from "../../types/instance";
 import { getUptime } from "../../utils/uptime";
+import { useTabState } from "../../hooks/tabstate";
 
 const Title: React.FC<{ node: Resource<Node> }> = ({ node }) => {
     const navigate = useNavigate();
@@ -158,15 +157,7 @@ export const NodeView: React.FC<unknown> = () => {
         queryFn: () => get<Node>(id!, ResourceKind.Node),
     });
 
-    // TODO: This whole setup causes a full page reload?
-    const tabKey = `${id}/tab`;
-    const [tab, setTab] = useState<string>(() => {
-        return localStorage.getItem(tabKey) || "overview";
-    });
-
-    useEffect(() => {
-        localStorage.setItem(tabKey, tab);
-    }, [tab, tabKey]);
+    const [tab, setTab] = useTabState("overview");
 
     if (data.isLoading && !data.isError) {
         return <Text>Loading...</Text>;
@@ -188,16 +179,10 @@ export const NodeView: React.FC<unknown> = () => {
                             Virtual Machines
                         </Tabs.Trigger>
                         <Tabs.Trigger
-                            value="pools"
-                            onClick={() => setTab("pools")}
+                            value="hypervisor"
+                            onClick={() => setTab("hypervisor")}
                         >
-                            Storage Pools
-                        </Tabs.Trigger>
-                        <Tabs.Trigger
-                            value="networks"
-                            onClick={() => setTab("networks")}
-                        >
-                            Networks
+                            Hypervisor
                         </Tabs.Trigger>
                     </Tabs.List>
 
@@ -217,36 +202,8 @@ export const NodeView: React.FC<unknown> = () => {
                             <VmsView id={id!} />
                         </Tabs.Content>
 
-                        <Tabs.Content value="pools">
+                        <Tabs.Content value="hypervisor">
                             <PoolsView nodeId={id!} />
-                        </Tabs.Content>
-                        <Tabs.Content value="networks">
-                            <PieChart
-                                skipAnimation
-                                series={[
-                                    {
-                                        data: [
-                                            {
-                                                id: 0,
-                                                value: 10,
-                                            },
-                                            {
-                                                id: 1,
-                                                value: 15,
-                                            },
-                                            {
-                                                id: 2,
-                                                value: 20,
-                                            },
-                                        ],
-                                        innerRadius: 30,
-                                        paddingAngle: 5,
-                                        cornerRadius: 5,
-                                    },
-                                ]}
-                                width={400}
-                                height={200}
-                            />
                         </Tabs.Content>
                     </Box>
                 </Tabs.Root>

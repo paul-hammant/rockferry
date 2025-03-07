@@ -15,9 +15,9 @@ import { get } from "../../data/queries/get";
 import { Instance } from "../../types/instance";
 import { Resource, ResourceKind } from "../../types/resource";
 import { CopyIcon } from "@radix-ui/react-icons";
-import { useEffect, useState } from "react";
 import { NodesTab } from "./nodes";
 import { ClustersTab } from "./clusters";
+import { useTabState } from "../../hooks/tabstate";
 
 export const Overview: React.FC<unknown> = () => {
     const data = useQuery({
@@ -25,15 +25,7 @@ export const Overview: React.FC<unknown> = () => {
         queryFn: () => get<Instance>("self", ResourceKind.Instance),
     });
 
-    // TODO: This whole setup causes a full page reload?
-    const tabKey = `overview/tab`;
-    const [tab, setTab] = useState<string>(() => {
-        return localStorage.getItem(tabKey) || "overview";
-    });
-
-    useEffect(() => {
-        localStorage.setItem(tabKey, tab);
-    }, [tab, tabKey]);
+    const [tab, setTab] = useTabState("overview");
 
     if (data.isLoading && !data.isError) {
         return <Text>Loading...</Text>;

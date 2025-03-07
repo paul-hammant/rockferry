@@ -10,6 +10,11 @@ export interface ClusterNode {
 
 export interface Cluster {
     name: string;
+    nodes: ClusterNode[];
+    kubernetes_version: string;
+    talos_config: string;
+    control_plane_config: string;
+    worker_config: string;
 }
 
 export enum ClusterStatusState {
@@ -19,7 +24,4 @@ export enum ClusterStatusState {
 
 export interface ClusterStatus {
     state: ClusterStatusState;
-    nodes: ClusterNode[];
-    kubernetes_version: string;
-    talos_config: string;
 }

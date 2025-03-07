@@ -114,8 +114,8 @@ func (r *Runtime) CreateResource(ctx context.Context, resource *rockferry.Generi
 	return nil
 }
 
-func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind rockferry.ResourceKind, id string, owner *rockferry.OwnerRef) (chan *rockferry.Generic, chan interface{}, error) {
-	out := make(chan *rockferry.Generic)
+func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind rockferry.ResourceKind, id string, owner *rockferry.OwnerRef) (chan *rockferry.WatchEvent[any, any], chan interface{}, error) {
+	out := make(chan *rockferry.WatchEvent[any, any])
 	cancel := make(chan interface{})
 	var opts []clientv3.OpOption
 
@@ -129,7 +129,7 @@ func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind 
 		path = fmt.Sprintf("%s/%s/%s", models.RootKey, kind, owner.Id)
 	}
 
-	if action == rockferry.WatchActionDelete {
+	if action == rockferry.WatchActionDelete || action == rockferry.WatchActionUpdate {
 		opts = append(opts, clientv3.WithPrevKV())
 	}
 
@@ -178,7 +178,21 @@ func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind 
 					}
 				}
 
-				out <- resource
+				ret := new(rockferry.WatchEvent[any, any])
+
+				ret.Resource = resource
+
+				if event.PrevKv != nil && action != rockferry.WatchActionDelete {
+					prev := new(rockferry.Generic)
+					if err := json.Unmarshal(event.PrevKv.Value, prev); err != nil {
+						fmt.Println("JSON unmarshal error:", err)
+						continue
+					}
+
+					ret.Prev = prev
+				}
+
+				out <- ret
 			}
 		}
 	}()

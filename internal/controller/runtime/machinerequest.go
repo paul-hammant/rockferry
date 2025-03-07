@@ -57,9 +57,9 @@ func (r *Runtime) allocateMachineVolumes(ctx context.Context, req *rockferry.Mac
 			{
 				return rockferry.ErrorStreamClosed
 			}
-		case resource := <-stream:
+		case e := <-stream:
 			{
-				volume := rockferry.CastFromMap[spec.StorageVolumeSpec, rockferry.DefaultStatus](resource)
+				volume := rockferry.CastFromMap[spec.StorageVolumeSpec, rockferry.DefaultStatus](e.Resource)
 
 				for _, o := range volumes {
 					if volume.Id == o.Id && volume.Phase == rockferry.PhaseRequested {

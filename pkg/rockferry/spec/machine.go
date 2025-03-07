@@ -42,9 +42,19 @@ type MachineSpecDisk struct {
 	Network *MachineSpecDiskNetwork `json:"network,omitempty"`
 }
 
+type MachineSpecBoot struct {
+	Order []string `json:"order"`
+
+	Kernel    *string `json:"kernel,omitempty"`
+	Initramfs *string `json:"initramfs,omitempty"`
+	Cmdline   *string `json:"cmdline,omitempty"`
+}
+
 type MachineSpec struct {
 	Name     string   `json:"name"`
 	Topology Topology `json:"topology"`
+
+	Boot MachineSpecBoot `json:"boot"`
 
 	Disks      []*MachineSpecDisk      `json:"disks"`
 	Interfaces []*MachineSpecInterface `json:"interfaces"`

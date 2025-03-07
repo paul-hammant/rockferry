@@ -25,7 +25,6 @@ export const NodesTab: React.FC<unknown> = () => {
                     <Table.Row>
                         <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Url</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>
                             Machines
                         </Table.ColumnHeaderCell>
@@ -56,7 +55,6 @@ export const NodesTab: React.FC<unknown> = () => {
                                 <Table.RowHeaderCell>
                                     {node.spec!.hostname}
                                 </Table.RowHeaderCell>
-                                <Table.Cell>placeholder</Table.Cell>
                                 <Table.Cell>
                                     <Badge color="green">
                                         {node.spec!.active_machines}

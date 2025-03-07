@@ -20,3 +20,10 @@ func InternalServerError() Error {
 		Message: "Something went wrong...",
 	}
 }
+
+func NotFound() Error {
+	return Error{
+		Code:    http.StatusNotFound,
+		Message: "resource not found",
+	}
+}
