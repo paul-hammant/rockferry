@@ -38,7 +38,9 @@ const Title: React.FC<{ pool: Resource<Pool>; isDefault: boolean }> = ({
                 className="hover:cursor-pointer"
                 color="purple"
                 onClick={() =>
-                    navigate(`/nodes/${node.data!.id}?tab=hypervisor`)
+                    navigate(
+                        `/nodes/${node.data!.id}?tab=hypervisor&subtab=Pools`,
+                    )
                 }
             >
                 <Text size="6">{node.data?.spec?.hostname}</Text>

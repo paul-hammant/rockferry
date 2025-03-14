@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/eskpil/rockferry/internal/controller/controllers/common"
-	"github.com/eskpil/rockferry/internal/controller/models"
 	"github.com/eskpil/rockferry/internal/controller/runtime"
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/google/uuid"
@@ -15,10 +14,10 @@ import (
 )
 
 type CreateResourceInput struct {
-	Annotations map[string]string   `json:"annotations"`
-	Kind        models.ResourceKind `json:"kind"`
-	OwnerRef    *rockferry.OwnerRef `json:"owner_ref"`
-	Spec        any                 `json:"spec"`
+	Annotations map[string]string      `json:"annotations"`
+	Kind        rockferry.ResourceKind `json:"kind"`
+	OwnerRef    *rockferry.OwnerRef    `json:"owner_ref"`
+	Spec        any                    `json:"spec"`
 }
 
 type res struct {

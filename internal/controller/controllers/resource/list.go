@@ -2,22 +2,19 @@ package resource
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/eskpil/rockferry/controllerapi"
 	"github.com/eskpil/rockferry/internal/controller/controllers/common"
-	"github.com/eskpil/rockferry/internal/controller/db"
-	"github.com/eskpil/rockferry/internal/controller/models"
+	"github.com/eskpil/rockferry/internal/controller/runtime"
+	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/labstack/echo/v4"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type ListFilter struct {
-	Kind      string `query:"kind"`
-	Id        string `query:"id"`
+	Kind string `query:"kind"`
+	Id   string `query:"id"`
+
 	OwnerKind string `query:"owner_kind"`
 	OwnerId   string `query:"owner_id"`
 }
@@ -32,46 +29,21 @@ func List() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, common.MalformedInput())
 		}
 
-		db := db.Extract(c)
+		r := runtime.ExtractRuntime(c)
 
-		// TODO: Validate kind
-
-		var opts []clientv3.OpOption
-
-		if filter.Id == "" {
-			opts = append(opts, clientv3.WithPrefix())
-		}
-		path := fmt.Sprintf("%s/%s/%s", models.RootKey, filter.Kind, filter.Id)
-
-		// TODO: Avoid this hack
-		if filter.Kind == models.ResourceKindStorageVolume {
-			path = fmt.Sprintf("%s/%s/%s", models.RootKey, filter.Kind, filter.OwnerId)
+		owner := new(rockferry.OwnerRef)
+		if filter.OwnerKind != "" && filter.OwnerId != "" {
+			owner.Kind = filter.OwnerKind
+			owner.Id = filter.OwnerId
 		}
 
-		res, err := db.Get(ctx, path, opts...)
+		resources, err := r.List(ctx, filter.Kind, filter.Id, owner, nil)
 		if err != nil {
-			fmt.Println("failed to fetch resources", err)
 			return c.JSON(http.StatusInternalServerError, common.InternalServerError())
 		}
 
-		list := new(common.ListResponse[controllerapi.Resource])
-
-		for _, kv := range res.Kvs {
-			resource := new(controllerapi.Resource)
-			if err := json.Unmarshal(kv.Value, resource); err != nil {
-				fmt.Println("unable to unmarshal resource", err)
-				return c.JSON(http.StatusInternalServerError, common.InternalServerError())
-			}
-
-			if filter.OwnerId != "" && filter.OwnerKind != "" && resource.Owner != nil {
-				if filter.OwnerId != resource.Owner.Id && filter.OwnerKind != resource.Owner.Kind {
-					continue
-				}
-			}
-
-			list.List = append(list.List, resource)
-
-		}
+		list := new(common.ListResponse[rockferry.Generic])
+		list.List = resources
 
 		return c.JSON(http.StatusOK, list)
 	}

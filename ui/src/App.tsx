@@ -11,6 +11,7 @@ import { CreateVolumeView } from "./views/pool/create-volume";
 import { VmOverview } from "./views/vm/overview";
 import { CreateClusterView } from "./views/cluster/create";
 import { ClusterOverview } from "./views/cluster/overview";
+import { ConsoleFullscreen } from "./views/vm/console-fullscreen";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,10 @@ function App() {
                         />
 
                         <Route path="vm/:id" element={<VmOverview />} />
+                        <Route
+                            path="vm/:id/console-fullscreen"
+                            element={<ConsoleFullscreen />}
+                        />
                         <Route path="nodes/:id" element={<NodeView />} />
                         <Route
                             path="nodes/:id/create-vm"

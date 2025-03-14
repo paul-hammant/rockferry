@@ -255,7 +255,9 @@ export const CreateClusterView: React.FC<unknown> = () => {
                                             color="red"
                                             type="button"
                                             onClick={() => {
-                                                navigate(`/`);
+                                                navigate(
+                                                    `/?tab=kubernetes-clusters`,
+                                                );
                                             }}
                                         >
                                             Cancel

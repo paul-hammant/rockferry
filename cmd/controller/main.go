@@ -12,7 +12,6 @@ import (
 	"github.com/eskpil/rockferry/controllerapi"
 	"github.com/eskpil/rockferry/internal/controller"
 	"github.com/eskpil/rockferry/internal/controller/api"
-	"github.com/eskpil/rockferry/internal/controller/controllers/nodes"
 	"github.com/eskpil/rockferry/internal/controller/controllers/resource"
 	"github.com/eskpil/rockferry/internal/controller/db"
 	"github.com/eskpil/rockferry/internal/controller/runtime"
@@ -86,7 +85,6 @@ func main() {
 		}))
 
 		server.Use(db.Middleware())
-		server.POST("/v1/nodes", nodes.Create())
 
 		server.GET("/v1/resources", resource.List())
 		server.POST("v1/resources", resource.Create())

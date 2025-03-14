@@ -9,14 +9,15 @@ import (
 	"github.com/eskpil/rockferry/internal/controller/controllers/common"
 	"github.com/eskpil/rockferry/internal/controller/db"
 	"github.com/eskpil/rockferry/internal/controller/models"
+	"github.com/eskpil/rockferry/pkg/rockferry"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/labstack/echo/v4"
 )
 
 type PatchResourceInput struct {
-	Kind    models.ResourceKind `json:"kind"`
-	Id      string              `json:"id"`
-	Patches jsonpatch.Patch     `json:"patches"`
+	Kind    rockferry.ResourceKind `json:"kind"`
+	Id      string                 `json:"id"`
+	Patches jsonpatch.Patch        `json:"patches"`
 }
 
 func Patch() echo.HandlerFunc {
@@ -58,8 +59,6 @@ func Patch() echo.HandlerFunc {
 		if err != nil {
 			panic(err)
 		}
-
-		fmt.Println("ui patching: ", path)
 
 		_, err = db.Put(ctx, path, string(modified))
 		if err != nil {

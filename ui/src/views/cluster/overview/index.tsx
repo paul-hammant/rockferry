@@ -1,12 +1,53 @@
-import { Badge, Box, Card, DataList, Grid, Tabs, Text } from "@radix-ui/themes";
+import {
+    Badge,
+    Box,
+    Button,
+    Card,
+    DataList,
+    Grid,
+    Separator,
+    Tabs,
+    Text,
+} from "@radix-ui/themes";
 import { useNavigate, useParams } from "react-router";
 import { Cluster, ClusterStatus } from "../../../types/cluster";
 import { Resource, ResourceKind } from "../../../types/resource";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { get } from "../../../data/queries/get";
 import { MachinesTab } from "./machines";
 import { ConfigTab } from "./talosconfig";
 import { useTabState } from "../../../hooks/tabstate";
+import { del } from "../../../data/mutations/delete";
+
+const DeleteButton: React.FC<{ cluster: Resource<Cluster, ClusterStatus> }> = ({
+    cluster,
+}) => {
+    const navigate = useNavigate();
+
+    const { mutate } = useMutation({
+        mutationKey: ["cluster", cluster.id],
+        mutationFn: del,
+    });
+
+    return (
+        <Button
+            color="red"
+            variant="soft"
+            onClick={() => {
+                mutate(
+                    { kind: cluster.kind, id: cluster.id },
+                    {
+                        onSuccess: () => {
+                            navigate("/?tab=kubernetes-clusters");
+                        },
+                    },
+                );
+            }}
+        >
+            Delete
+        </Button>
+    );
+};
 
 const InfoPane: React.FC<{
     cluster: Resource<Cluster, ClusterStatus>;
@@ -47,6 +88,8 @@ const InfoPane: React.FC<{
                     </DataList.Value>
                 </DataList.Item>
             </DataList.Root>
+            <Separator size="4" mt="3" mb="3" />
+            <DeleteButton cluster={cluster!} />
         </Card>
     );
 };

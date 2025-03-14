@@ -124,7 +124,7 @@ func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind 
 	if id == "" {
 		opts = append(opts, clientv3.WithPrefix())
 		path = fmt.Sprintf("%s/%s/", models.RootKey, kind)
-	} else if kind == models.ResourceKindStorageVolume && owner != nil {
+	} else if kind == rockferry.ResourceKindStorageVolume && owner != nil {
 		// Use owner ID instead of resource ID for StorageVolume (refactor to avoid special case if possible)
 		path = fmt.Sprintf("%s/%s/%s", models.RootKey, kind, owner.Id)
 	}
@@ -202,6 +202,19 @@ func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind 
 
 // Caller can provide a set of annotations which much match.
 func (r *Runtime) Get(ctx context.Context, kind rockferry.ResourceKind, id string, owner *rockferry.OwnerRef, annotations map[string]string) (*rockferry.Generic, error) {
+	resources, err := r.List(ctx, kind, id, owner, annotations)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resources) > 1 {
+		return nil, rockferry.ErrorUnexpectedResults
+	}
+
+	return resources[0], nil
+}
+
+func (r *Runtime) List(ctx context.Context, kind rockferry.ResourceKind, id string, owner *rockferry.OwnerRef, annotations map[string]string) ([]*rockferry.Generic, error) {
 	opts := []clientv3.OpOption{}
 	if id == "" {
 		opts = append(opts, clientv3.WithPrefix())
@@ -218,7 +231,9 @@ func (r *Runtime) Get(ctx context.Context, kind rockferry.ResourceKind, id strin
 		return nil, rockferry.ErrorNotFound
 	}
 
-	for _, kv := range results.Kvs {
+	output := make([]*rockferry.Generic, len(results.Kvs))
+
+	for i, kv := range results.Kvs {
 		resource := new(rockferry.Generic)
 		if err := json.Unmarshal(kv.Value, resource); err != nil {
 			panic(err)
@@ -239,13 +254,13 @@ func (r *Runtime) Get(ctx context.Context, kind rockferry.ResourceKind, id strin
 				}
 			}
 
-			// Matched all criteria
-			if match {
-				return resource, nil
+			if !match {
+				continue
 			}
 		}
 
+		output[i] = resource
 	}
 
-	return nil, rockferry.ErrorNotFound
+	return output, nil
 }

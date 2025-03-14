@@ -73,7 +73,7 @@ func (c Controller) List(ctx context.Context, req *controllerapi.ListRequest) (*
 	}
 
 	// TODO: Avoid this hack
-	if req.Kind == models.ResourceKindStorageVolume && req.Owner != nil && req.Id == nil {
+	if req.Kind == rockferry.ResourceKindStorageVolume && req.Owner != nil && req.Id == nil {
 		path = fmt.Sprintf("%s/%s/%s", models.RootKey, req.Kind, req.Owner.Id)
 	}
 

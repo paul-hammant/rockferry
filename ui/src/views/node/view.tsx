@@ -11,7 +11,6 @@ import {
     Tabs,
     Text,
 } from "@radix-ui/themes";
-import { PoolsView } from "./pools";
 import { useNavigate, useParams } from "react-router";
 import { VmsView } from "./vms";
 import { get } from "../../data/queries/get";
@@ -23,6 +22,7 @@ import { convert, Units } from "../../utils/conversion";
 import { Instance } from "../../types/instance";
 import { getUptime } from "../../utils/uptime";
 import { useTabState } from "../../hooks/tabstate";
+import { HypervisorTab } from "./hypervisor";
 
 const Title: React.FC<{ node: Resource<Node> }> = ({ node }) => {
     const navigate = useNavigate();
@@ -190,7 +190,7 @@ export const NodeView: React.FC<unknown> = () => {
                         <Tabs.Content value="overview">
                             <Grid columns="3" gap="4">
                                 <Box gridColumn="1/3">
-                                    <Card size="2"></Card>
+                                    <MainArea node={data.data!} />
                                 </Box>
                                 <Box gridColumnStart="3">
                                     <NodeMetadata node={data.data!} />
@@ -203,11 +203,26 @@ export const NodeView: React.FC<unknown> = () => {
                         </Tabs.Content>
 
                         <Tabs.Content value="hypervisor">
-                            <PoolsView nodeId={id!} />
+                            <HypervisorTab node={data.data!} />
                         </Tabs.Content>
                     </Box>
                 </Tabs.Root>
             </Box>
         </Box>
+    );
+};
+
+const MainArea: React.FC<{ node: Resource<Node> }> = ({ node }) => {
+    return (
+        <Card size="2">
+            <Flex dir="row" justify="between" gap="3">
+                <Card size="2" className="w-100 center">
+                    vms: <Badge>23</Badge>
+                </Card>
+                <Card size="2" className="w-100"></Card>
+                <Card size="2" className="w-100"></Card>
+                <Card size="2" className="w-100"></Card>
+            </Flex>
+        </Card>
     );
 };

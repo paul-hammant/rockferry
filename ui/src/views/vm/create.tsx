@@ -428,7 +428,7 @@ export const CreateVmView: React.FC<unknown> = () => {
                                             variant="soft"
                                             type="button"
                                             onClick={() =>
-                                                navigate(`/nodes/${id}`)
+                                                navigate(`/nodes/${id}?tab=vms`)
                                             }
                                         >
                                             Cancel

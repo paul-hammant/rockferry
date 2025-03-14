@@ -33,8 +33,7 @@ import { useTabState } from "../../hooks/tabstate";
 import { Devices } from "./devices";
 import * as jsonpatch from "fast-json-patch";
 import { patch } from "../../data/mutations/patch";
-import { ToastContainer, toast } from "react-toastify";
-import { StateToast } from "./notification";
+import { del } from "../../data/mutations/delete";
 
 // TODO: react-toastify sucks ass
 
@@ -45,25 +44,7 @@ const startVm = (
     const observer = jsonpatch.observe<Resource<Machine, MachineStatus>>(vm);
     vm.status.state = "booting";
     const patches = jsonpatch.generate(observer);
-    mutate(
-        { id: vm.id, kind: vm.kind, patches },
-        {
-            onSuccess: () => {
-                toast.success(StateToast, {
-                    data: {
-                        content: `starting: ${vm.spec!.name}`,
-                    },
-                    className: "border-2 border-green-400",
-                    icon: false,
-                    autoClose: 1500,
-                    hideProgressBar: true,
-                    closeButton: true,
-                    closeOnClick: true,
-                    theme: "dark",
-                });
-            },
-        },
-    );
+    mutate({ id: vm.id, kind: vm.kind, patches });
 };
 
 const shutdownVm = (
@@ -73,24 +54,36 @@ const shutdownVm = (
     const observer = jsonpatch.observe<Resource<Machine, MachineStatus>>(vm);
     vm.status.state = "stopped";
     const patches = jsonpatch.generate(observer);
-    mutate(
-        { id: vm.id, kind: vm.kind, patches },
-        {
-            onSuccess: () => {
-                toast.success(StateToast, {
-                    data: {
-                        content: `shutdown: ${vm.spec!.name}`,
+    mutate({ id: vm.id, kind: vm.kind, patches });
+};
+
+const DeleteButton: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
+    vm,
+}) => {
+    const navigate = useNavigate();
+
+    const { mutate } = useMutation({
+        mutationKey: ["vm", vm.id],
+        mutationFn: del,
+    });
+
+    return (
+        <Button
+            color="red"
+            variant="soft"
+            onClick={() =>
+                mutate(
+                    { kind: vm.kind, id: vm.id },
+                    {
+                        onSuccess: () => {
+                            navigate(`/nodes/${vm.owner!.id}?tab=vms`);
+                        },
                     },
-                    className: "border-2 border-red-400",
-                    icon: false,
-                    autoClose: 1500,
-                    hideProgressBar: true,
-                    closeButton: true,
-                    closeOnClick: true,
-                    theme: "dark",
-                });
-            },
-        },
+                )
+            }
+        >
+            Delete
+        </Button>
     );
 };
 
@@ -188,7 +181,7 @@ const VmMetadata: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
             <Separator size="4" mt="3" mb="3" />
 
             {vm.status.state === "stopped" ? (
-                <Flex mt="3" gap="3">
+                <Flex mt="3" gap="3" justify="between" dir="row">
                     <Button
                         color="purple"
                         variant="soft"
@@ -196,22 +189,24 @@ const VmMetadata: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
                     >
                         Start
                     </Button>
+                    <DeleteButton vm={vm} />
                 </Flex>
             ) : (
-                <Flex mt="3" gap="3">
-                    <Button color="red" variant="soft">
-                        Reboot
-                    </Button>
-                    <Button
-                        color="red"
-                        variant="soft"
-                        onClick={() => shutdownVm(vm, mutate)}
-                    >
-                        Shutdown
-                    </Button>
-                    <Button color="red" variant="soft">
-                        Stop
-                    </Button>
+                <Flex mt="3" dir="row" justify="between">
+                    <Box>
+                        <Button color="red" variant="soft">
+                            Reboot
+                        </Button>
+                        <Button
+                            ml="3"
+                            color="red"
+                            variant="soft"
+                            onClick={() => shutdownVm(vm, mutate)}
+                        >
+                            Shutdown
+                        </Button>
+                    </Box>
+                    <DeleteButton vm={vm} />
                 </Flex>
             )}
         </Card>
@@ -257,6 +252,18 @@ const VmTabs: React.FC<{
                             onClick={() => setTab("devices")}
                         >
                             Devices
+                        </Tabs.Trigger>
+                        <Tabs.Trigger
+                            value="devices"
+                            onClick={() => setTab("devices")}
+                        >
+                            Cloud Init
+                        </Tabs.Trigger>
+                        <Tabs.Trigger
+                            value="devices"
+                            onClick={() => setTab("devices")}
+                        >
+                            Options
                         </Tabs.Trigger>
                     </Tabs.List>
 
@@ -310,7 +317,6 @@ export const VmOverview: React.FC<unknown> = () => {
     return (
         <>
             <VmTabs vm={vm.data!} />
-            <ToastContainer position="bottom-right" />
         </>
     );
 };
