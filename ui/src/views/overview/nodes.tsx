@@ -9,7 +9,7 @@ import { getUptime } from "../../utils/uptime";
 export const NodesTab: React.FC<unknown> = () => {
     const navigate = useNavigate();
     const nodes = useQuery({
-        queryKey: ["nodes"],
+        queryKey: [ResourceKind.Instance, "self", ResourceKind.Node],
         queryFn: () =>
             list<Node>(ResourceKind.Node, "self", ResourceKind.Instance),
     });

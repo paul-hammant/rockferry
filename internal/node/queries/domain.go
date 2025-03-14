@@ -321,5 +321,5 @@ func (c *Client) ShutdownDomain(id string) error {
 		return err
 	}
 
-	return c.v.DomainShutdownFlags(dom, 0)
+	return c.v.DomainShutdownFlags(dom, 4)
 }

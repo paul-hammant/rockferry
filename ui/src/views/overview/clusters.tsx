@@ -14,7 +14,7 @@ import { Badge } from "@radix-ui/themes/src/index.js";
 export const ClustersTab: React.FC<unknown> = () => {
     const navigate = useNavigate();
     const clusters = useQuery({
-        queryKey: ["clusters"],
+        queryKey: [ResourceKind.Instance, "self", ResourceKind.Cluster],
         queryFn: () =>
             list<Cluster, ClusterStatus>(
                 ResourceKind.Cluster,

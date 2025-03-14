@@ -26,7 +26,7 @@ const PoolSelect: React.FC<{
     onChange: (value: string) => void;
 }> = ({ nodeId, onChange }) => {
     const data = useQuery({
-        queryKey: [nodeId, `pools`],
+        queryKey: [ResourceKind.Node, nodeId, ResourceKind.StoragePool],
         queryFn: () =>
             list<Pool>(ResourceKind.StoragePool, nodeId, ResourceKind.Node),
     });
@@ -72,7 +72,11 @@ const VolumeSelect: React.FC<{
     onChange: (value: string) => void;
 }> = ({ poolId, onChange }) => {
     const data = useQuery({
-        queryKey: [poolId, `pools`],
+        queryKey: [
+            ResourceKind.StoragePool,
+            poolId,
+            ResourceKind.StorageVolume,
+        ],
         queryFn: () =>
             list<Volume>(
                 ResourceKind.StorageVolume,
@@ -101,10 +105,12 @@ const VolumeSelect: React.FC<{
                         {data?.data?.list?.map((resource) => {
                             const volume = resource!.spec;
 
+                            console.log(volume);
+
                             return (
                                 <Select.Item
                                     value={volume!.key}
-                                    key={volume!.key}
+                                    key={resource.id}
                                 >
                                     {volume?.name}
                                 </Select.Item>
@@ -122,7 +128,7 @@ const NetworkSelect: React.FC<{
     onChange: (value: string) => void;
 }> = ({ nodeId, onChange }) => {
     const data = useQuery({
-        queryKey: [nodeId, `networks`],
+        queryKey: [ResourceKind.Node, nodeId, ResourceKind.Network],
         queryFn: () =>
             list<Network>(ResourceKind.Network, nodeId, ResourceKind.Node),
     });

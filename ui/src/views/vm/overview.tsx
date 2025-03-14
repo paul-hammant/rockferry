@@ -52,7 +52,7 @@ const shutdownVm = (
     mutate: UseMutateFunction<Response, Error, PatchResourceInput, unknown>,
 ) => {
     const observer = jsonpatch.observe<Resource<Machine, MachineStatus>>(vm);
-    vm.status.state = "stopped";
+    vm.status.state = "shutdown";
     const patches = jsonpatch.generate(observer);
     mutate({ id: vm.id, kind: vm.kind, patches });
 };
@@ -63,7 +63,7 @@ const DeleteButton: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
     const navigate = useNavigate();
 
     const { mutate } = useMutation({
-        mutationKey: ["vm", vm.id],
+        mutationKey: [ResourceKind.Machine, vm.id],
         mutationFn: del,
     });
 
@@ -114,7 +114,7 @@ const VmMetadata: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
     vm,
 }) => {
     const { mutate } = useMutation({
-        mutationKey: ["machine", vm.id],
+        mutationKey: [ResourceKind.Machine, vm.id],
         mutationFn: patch,
     });
 
@@ -221,7 +221,7 @@ const VmTabs: React.FC<{
         isLoading,
         isError,
     } = useQuery({
-        queryKey: ["nodes", vm.owner?.id],
+        queryKey: [ResourceKind.Node, vm.owner?.id],
         queryFn: () => get<Node>(vm.owner!.id!, ResourceKind.Node),
     });
 
@@ -302,7 +302,7 @@ export const VmOverview: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
 
     const vm = useQuery({
-        queryKey: ["machines", id],
+        queryKey: [ResourceKind.Machine, id],
         queryFn: () => get<Machine, MachineStatus>(id!, ResourceKind.Machine),
     });
 

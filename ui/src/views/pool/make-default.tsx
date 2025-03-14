@@ -15,7 +15,7 @@ export const MakeDefault: React.FC<Props> = ({ pool, isDefault }) => {
     const { mutate } = useMutation({ mutationFn: patch });
 
     const { data, isError, isLoading } = useQuery({
-        queryKey: [pool.owner!.id, "pools"],
+        queryKey: [ResourceKind.Node, pool.owner?.id, ResourceKind.StoragePool],
         queryFn: () =>
             list<Resource<Pool>>(
                 ResourceKind.StoragePool,

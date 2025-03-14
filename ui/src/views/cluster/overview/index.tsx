@@ -121,7 +121,7 @@ export const ClusterOverview: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
 
     const cluster = useQuery({
-        queryKey: ["machines", id],
+        queryKey: [ResourceKind.Cluster, id],
         queryFn: () => get<Cluster, ClusterStatus>(id!, ResourceKind.Cluster),
     });
 

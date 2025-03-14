@@ -19,7 +19,7 @@ export const PoolsView: React.FC<Props> = ({ node }) => {
         isLoading,
         data: pools,
     } = useQuery({
-        queryKey: [node.id, `pools`],
+        queryKey: [ResourceKind.Node, node.id, ResourceKind.StoragePool],
         queryFn: () =>
             list<Pool>(ResourceKind.StoragePool, node.id, ResourceKind.Node),
     });

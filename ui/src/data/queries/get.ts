@@ -22,5 +22,9 @@ export const get = async <T, S = Status>(
         {},
     ).then((res) => res.json());
 
+    if (resources.list.length <= 0) {
+        console.log("wtf no matches");
+    }
+
     return resources.list[0];
 };

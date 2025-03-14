@@ -317,7 +317,7 @@ func (t *UpdateVmTask) Execute(ctx context.Context, e *Executor) error {
 				return e.Libvirt.StartDomain(t.Machine.Id)
 			}
 
-			if current == spec.MachineStatusStateRunning && desired == spec.MachineStatusStateStopped {
+			if current == spec.MachineStatusStateRunning && desired == spec.MachineStatusStateShutdown {
 				fmt.Println("shutdown", t.Machine.Spec.Name)
 				return e.Libvirt.ShutdownDomain(t.Machine.Id)
 			}

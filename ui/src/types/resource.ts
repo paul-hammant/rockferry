@@ -1,6 +1,14 @@
 import * as jsonpatch from "fast-json-patch";
 
+export enum WatchAction {
+    Create = 0,
+    Update = 1,
+    Delete = 2,
+    All = 3,
+}
+
 export enum ResourceKind {
+    All = "",
     Node = "node",
     StoragePool = "storagepool",
     StorageVolume = "storagevolume",
@@ -55,4 +63,10 @@ export interface PatchResourceInput {
     kind: ResourceKind;
     id: string;
     patches: jsonpatch.Operation[];
+}
+
+export interface WatchResponse<T, S = Status> {
+    action: WatchAction;
+    resource: Resource<T, S>;
+    prev: Resource<T, S>;
 }

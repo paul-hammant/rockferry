@@ -15,7 +15,7 @@ export const NetworksView: React.FC<Props> = ({ node }) => {
         isLoading,
         data: pools,
     } = useQuery({
-        queryKey: [node.id, `networks`],
+        queryKey: [ResourceKind.Node, node.id, ResourceKind.Network],
         queryFn: () =>
             list<Network>(ResourceKind.Network, node.id, ResourceKind.Node),
     });

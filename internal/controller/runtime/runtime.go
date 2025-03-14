@@ -123,7 +123,7 @@ func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind 
 	path := fmt.Sprintf("%s/%s/%s", models.RootKey, kind, id)
 	if id == "" {
 		opts = append(opts, clientv3.WithPrefix())
-		path = fmt.Sprintf("%s/%s/", models.RootKey, kind)
+		path = fmt.Sprintf("%s/%s", models.RootKey, kind)
 	} else if kind == rockferry.ResourceKindStorageVolume && owner != nil {
 		// Use owner ID instead of resource ID for StorageVolume (refactor to avoid special case if possible)
 		path = fmt.Sprintf("%s/%s/%s", models.RootKey, kind, owner.Id)
@@ -152,10 +152,27 @@ func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind 
 			}
 
 			for _, event := range w.Events {
-				if (event.IsCreate() && action != rockferry.WatchActionCreate) ||
-					(event.IsModify() && action != rockferry.WatchActionUpdate) ||
-					(!event.IsCreate() && !event.IsModify() && action != rockferry.WatchActionDelete) {
-					continue
+				var usedAction rockferry.WatchAction
+				switch {
+				case event.IsCreate():
+					usedAction = rockferry.WatchActionCreate
+				case event.IsModify():
+					usedAction = rockferry.WatchActionUpdate
+				default:
+					usedAction = rockferry.WatchActionDelete
+				}
+
+				// Allow fallback on WatchActionAll
+				if action != rockferry.WatchActionAll {
+					if (usedAction == rockferry.WatchActionCreate && action != rockferry.WatchActionCreate) ||
+						(usedAction == rockferry.WatchActionUpdate && action != rockferry.WatchActionUpdate) ||
+						(usedAction == rockferry.WatchActionDelete && action != rockferry.WatchActionDelete) {
+						continue
+					}
+				}
+
+				if event.PrevKv != nil && action == rockferry.WatchActionDelete {
+					event.Kv = event.PrevKv
 				}
 
 				if event.PrevKv != nil && action == rockferry.WatchActionDelete {
@@ -180,6 +197,7 @@ func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind 
 
 				ret := new(rockferry.WatchEvent[any, any])
 
+				ret.Action = usedAction
 				ret.Resource = resource
 
 				if event.PrevKv != nil && action != rockferry.WatchActionDelete {
@@ -222,27 +240,29 @@ func (r *Runtime) List(ctx context.Context, kind rockferry.ResourceKind, id stri
 
 	path := fmt.Sprintf("%s/%s/%s", models.RootKey, kind, id)
 
+	fmt.Println(path)
+
 	results, err := r.Db.Get(ctx, path, opts...)
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Println(results.Kvs)
+
 	if 0 >= len(results.Kvs) {
 		return nil, rockferry.ErrorNotFound
 	}
 
-	output := make([]*rockferry.Generic, len(results.Kvs))
+	var output []*rockferry.Generic
 
-	for i, kv := range results.Kvs {
+	for _, kv := range results.Kvs {
 		resource := new(rockferry.Generic)
 		if err := json.Unmarshal(kv.Value, resource); err != nil {
 			panic(err)
 		}
 
-		if owner != nil && owner.Id != "" && owner.Kind != "" && resource.Owner != nil {
-			if owner.Id != resource.Owner.Id && owner.Kind != resource.Owner.Kind {
-				return nil, rockferry.ErrorNotFound
-			}
+		if owner != nil && resource.Owner != nil && *owner != *resource.Owner {
+			continue
 		}
 
 		if len(annotations) > 0 {
@@ -259,7 +279,8 @@ func (r *Runtime) List(ctx context.Context, kind rockferry.ResourceKind, id stri
 			}
 		}
 
-		output[i] = resource
+		output = append(output, resource)
+
 	}
 
 	return output, nil

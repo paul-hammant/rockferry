@@ -19,7 +19,7 @@ const Title: React.FC<{ pool: Resource<Pool>; isDefault: boolean }> = ({
     const navigate = useNavigate();
 
     const node = useQuery({
-        queryKey: ["nodes", pool.owner?.id],
+        queryKey: [ResourceKind.Node, pool.owner?.id],
         queryFn: () => get<Node>(pool.owner!.id!, pool.owner!.kind!),
     });
 
@@ -63,12 +63,12 @@ export const PoolView: React.FC<unknown> = () => {
     const navigate = useNavigate();
 
     const pool = useQuery({
-        queryKey: ["pools", id],
+        queryKey: [ResourceKind.StoragePool, id],
         queryFn: () => get<Pool>(id!, ResourceKind.StoragePool),
     });
 
     const volumes = useQuery({
-        queryKey: [id, `volumes`],
+        queryKey: [ResourceKind.StoragePool, id, ResourceKind.StorageVolume],
         queryFn: () =>
             list<Volume>(
                 ResourceKind.StorageVolume,

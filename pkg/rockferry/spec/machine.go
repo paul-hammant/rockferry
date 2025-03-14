@@ -8,6 +8,7 @@ const (
 	MachineStatusStateRebooting                    = "rebooting"
 	MachineStatusStateCrashed                      = "crashed"
 	MachineStatusStateStopped                      = "stopped"
+	MachineStatusStateShutdown                     = "shutdown"
 	MachineStatusStateBooting                      = "booting"
 
 	MachineStatusVNCTypeWebsocket MachineStatusVNCType = "websocket"

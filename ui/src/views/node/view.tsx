@@ -28,7 +28,7 @@ const Title: React.FC<{ node: Resource<Node> }> = ({ node }) => {
     const navigate = useNavigate();
 
     const instance = useQuery({
-        queryKey: ["instance"],
+        queryKey: [ResourceKind.Instance, "self"],
         queryFn: () => get<Instance>(node.owner!.id!, node.owner!.kind!),
     });
 
@@ -153,7 +153,7 @@ const NodeMetadata: React.FC<{ node: Resource<Node> }> = ({ node }) => {
 export const NodeView: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
     const data = useQuery({
-        queryKey: ["nodes", id],
+        queryKey: [ResourceKind.Node, id],
         queryFn: () => get<Node>(id!, ResourceKind.Node),
     });
 

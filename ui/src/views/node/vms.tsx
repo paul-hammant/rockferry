@@ -15,7 +15,7 @@ export const VmsView: React.FC<Props> = ({ id }) => {
     const navigate = useNavigate();
 
     const data = useQuery({
-        queryKey: [id, `machines`],
+        queryKey: [ResourceKind.Node, id, ResourceKind.Machine],
         queryFn: () =>
             list<Machine, MachineStatus>(
                 ResourceKind.Machine,

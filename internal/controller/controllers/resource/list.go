@@ -31,8 +31,9 @@ func List() echo.HandlerFunc {
 
 		r := runtime.ExtractRuntime(c)
 
-		owner := new(rockferry.OwnerRef)
+		var owner *rockferry.OwnerRef
 		if filter.OwnerKind != "" && filter.OwnerId != "" {
+			owner = new(rockferry.OwnerRef)
 			owner.Kind = filter.OwnerKind
 			owner.Id = filter.OwnerId
 		}

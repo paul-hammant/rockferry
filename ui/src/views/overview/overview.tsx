@@ -21,7 +21,7 @@ import { useTabState } from "../../hooks/tabstate";
 
 export const Overview: React.FC<unknown> = () => {
     const data = useQuery({
-        queryKey: ["instance"],
+        queryKey: [ResourceKind.Instance, "self"],
         queryFn: () => get<Instance>("self", ResourceKind.Instance),
     });
 

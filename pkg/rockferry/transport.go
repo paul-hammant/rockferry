@@ -16,8 +16,9 @@ import (
 )
 
 type WatchEvent[T any, S any] struct {
-	Resource *Resource[T, S]
-	Prev     *Resource[T, S]
+	Action   WatchAction     `json:"action"`
+	Resource *Resource[T, S] `json:"resource"`
+	Prev     *Resource[T, S] `json:"prev"`
 }
 
 type Transport struct {

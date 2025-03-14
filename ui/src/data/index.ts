@@ -1,8 +1,26 @@
 import { QueryFunction, useQuery } from "@tanstack/react-query";
+import { Resource } from "../types/resource";
 
 export interface List<T> {
     list: T[];
 }
+
+// node / id / pools;
+// node / id / vms;
+//
+// pool / id;
+// vm / id;
+
+export const relatedQueryKeys = (res: Resource<any, any>): string[][] => {
+    const out: string[][] = [];
+
+    if (res.owner) {
+        out.push([res.owner!.kind, res.owner!.id, res.kind]);
+    }
+
+    out.push([res.kind, res.id]);
+    return out;
+};
 
 interface Query<T> {
     queryKey: string[];
