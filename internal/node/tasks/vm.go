@@ -223,7 +223,13 @@ type DeleteVmTask struct {
 }
 
 func (t *DeleteVmTask) Execute(ctx context.Context, e *Executor) error {
-	if err := e.Libvirt.DestroyDomain(t.Machine.Id); err != nil {
+	if t.Machine.Status.State == spec.MachineStatusStateRunning || t.Machine.Status.State == spec.MachineStatusStateBooting {
+		if err := e.Libvirt.DestroyDomain(t.Machine.Id); err != nil {
+			return err
+		}
+	}
+
+	if err := e.Libvirt.UndefineDomain(t.Machine.Id); err != nil {
 		return err
 	}
 
@@ -318,8 +324,14 @@ func (t *UpdateVmTask) Execute(ctx context.Context, e *Executor) error {
 			}
 
 			if current == spec.MachineStatusStateRunning && desired == spec.MachineStatusStateShutdown {
-				fmt.Println("shutdown", t.Machine.Spec.Name)
-				return e.Libvirt.ShutdownDomain(t.Machine.Id)
+				if strings.Contains(strings.Join(t.Machine.Status.Errors, " "), "Guest agent is not responding: QEMU guest agent is not connected") {
+					fmt.Println("destroy", t.Machine.Spec.Name)
+					return e.Libvirt.DestroyDomain(t.Machine.Id)
+				} else {
+					fmt.Println("shutdown", t.Machine.Spec.Name)
+					return e.Libvirt.ShutdownDomain(t.Machine.Id)
+				}
+
 			}
 		}
 	}

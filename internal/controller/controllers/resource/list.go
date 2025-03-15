@@ -39,7 +39,7 @@ func List() echo.HandlerFunc {
 		}
 
 		resources, err := r.List(ctx, filter.Kind, filter.Id, owner, nil)
-		if err != nil {
+		if err != nil && err != rockferry.ErrorNotFound {
 			return c.JSON(http.StatusInternalServerError, common.InternalServerError())
 		}
 

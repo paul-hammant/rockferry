@@ -240,14 +240,10 @@ func (r *Runtime) List(ctx context.Context, kind rockferry.ResourceKind, id stri
 
 	path := fmt.Sprintf("%s/%s/%s", models.RootKey, kind, id)
 
-	fmt.Println(path)
-
 	results, err := r.Db.Get(ctx, path, opts...)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(results.Kvs)
 
 	if 0 >= len(results.Kvs) {
 		return nil, rockferry.ErrorNotFound

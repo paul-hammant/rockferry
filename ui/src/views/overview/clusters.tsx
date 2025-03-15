@@ -64,76 +64,72 @@ export const ClustersTab: React.FC<unknown> = () => {
                     </Table.Header>
 
                     <Table.Body>
-                        {clusters.data.list != undefined ??
-                            clusters.data!.list.map((resource) => {
-                                let state_badge_color = "red";
+                        {clusters.data?.list?.map((resource) => {
+                            let state_badge_color = "red";
 
-                                switch (resource.status.state) {
-                                    case ClusterStatusState.Healthy:
-                                        state_badge_color = "green";
-                                        break;
-                                    case ClusterStatusState.Creating:
-                                        state_badge_color = "amber";
-                                        break;
-                                }
+                            switch (resource.status.state) {
+                                case ClusterStatusState.Healthy:
+                                    state_badge_color = "green";
+                                    break;
+                                case ClusterStatusState.Creating:
+                                    state_badge_color = "amber";
+                                    break;
+                            }
 
-                                const workers = resource.spec!.nodes
-                                    ? resource.spec!.nodes.filter(
-                                          (node) =>
-                                              node.kind ==
-                                              ClusterNodeKind.Worker,
-                                      ).length
-                                    : 0;
+                            const workers = resource.spec!.nodes
+                                ? resource.spec!.nodes.filter(
+                                      (node) =>
+                                          node.kind == ClusterNodeKind.Worker,
+                                  ).length
+                                : 0;
 
-                                const controlPlanes = resource.spec!.nodes
-                                    ? resource.spec!.nodes.filter(
-                                          (node) =>
-                                              node.kind ==
-                                              ClusterNodeKind.ControlPlane,
-                                      ).length
-                                    : 0;
+                            const controlPlanes = resource.spec!.nodes
+                                ? resource.spec!.nodes.filter(
+                                      (node) =>
+                                          node.kind ==
+                                          ClusterNodeKind.ControlPlane,
+                                  ).length
+                                : 0;
 
-                                return (
-                                    <Table.Row
-                                        key={resource.id}
-                                        onClick={() => {
-                                            navigate(`/cluster/${resource.id}`);
-                                        }}
-                                    >
-                                        <Table.RowHeaderCell>
-                                            <Badge
-                                                color={state_badge_color as any}
-                                            >
-                                                {resource.status.state}
-                                            </Badge>
-                                        </Table.RowHeaderCell>
-                                        <Table.RowHeaderCell>
-                                            <Text>{resource.spec!.name}</Text>
-                                        </Table.RowHeaderCell>
-                                        <Table.RowHeaderCell>
-                                            <Badge color="purple">
-                                                <Text>{workers}</Text>
-                                            </Badge>
-                                        </Table.RowHeaderCell>
-                                        <Table.RowHeaderCell>
-                                            <Badge color="purple">
-                                                <Text>{controlPlanes}</Text>
-                                            </Badge>
-                                        </Table.RowHeaderCell>
-                                        <Table.RowHeaderCell>
-                                            <Badge color="amber">
-                                                <Text>
-                                                    v
-                                                    {
-                                                        resource.spec!
-                                                            .kubernetes_version
-                                                    }
-                                                </Text>
-                                            </Badge>
-                                        </Table.RowHeaderCell>
-                                    </Table.Row>
-                                );
-                            })}
+                            return (
+                                <Table.Row
+                                    key={resource.id}
+                                    onClick={() => {
+                                        navigate(`/cluster/${resource.id}`);
+                                    }}
+                                >
+                                    <Table.RowHeaderCell>
+                                        <Badge color={state_badge_color as any}>
+                                            {resource.status.state}
+                                        </Badge>
+                                    </Table.RowHeaderCell>
+                                    <Table.RowHeaderCell>
+                                        <Text>{resource.spec!.name}</Text>
+                                    </Table.RowHeaderCell>
+                                    <Table.RowHeaderCell>
+                                        <Badge color="purple">
+                                            <Text>{workers}</Text>
+                                        </Badge>
+                                    </Table.RowHeaderCell>
+                                    <Table.RowHeaderCell>
+                                        <Badge color="purple">
+                                            <Text>{controlPlanes}</Text>
+                                        </Badge>
+                                    </Table.RowHeaderCell>
+                                    <Table.RowHeaderCell>
+                                        <Badge color="amber">
+                                            <Text>
+                                                v
+                                                {
+                                                    resource.spec!
+                                                        .kubernetes_version
+                                                }
+                                            </Text>
+                                        </Badge>
+                                    </Table.RowHeaderCell>
+                                </Table.Row>
+                            );
+                        })}
                     </Table.Body>
                 </Table.Root>
             </Card>

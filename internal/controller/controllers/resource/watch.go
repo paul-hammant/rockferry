@@ -32,7 +32,6 @@ type WatchFilter struct {
 
 func Watch() echo.HandlerFunc {
 	return func(c echo.Context) error {
-
 		filter := new(WatchFilter)
 		if err := c.Bind(filter); err != nil {
 			return c.JSON(http.StatusBadRequest, common.MalformedInput())

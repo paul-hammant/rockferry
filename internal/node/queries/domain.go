@@ -323,3 +323,14 @@ func (c *Client) ShutdownDomain(id string) error {
 
 	return c.v.DomainShutdownFlags(dom, 4)
 }
+
+func (c *Client) UndefineDomain(id string) error {
+	domId := uuid.MustParse(id)
+
+	dom, err := c.v.DomainLookupByUUID(libvirt.UUID(domId))
+	if err != nil {
+		return err
+	}
+
+	return c.v.DomainUndefine(dom)
+}

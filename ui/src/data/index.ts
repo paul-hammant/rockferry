@@ -2,7 +2,7 @@ import { QueryFunction, useQuery } from "@tanstack/react-query";
 import { Resource } from "../types/resource";
 
 export interface List<T> {
-    list: T[];
+    list?: T[];
 }
 
 // node / id / pools;

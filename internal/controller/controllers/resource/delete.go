@@ -32,8 +32,6 @@ func Delete() echo.HandlerFunc {
 
 		path := fmt.Sprintf("%s/%s/%s", models.RootKey, req.Kind, req.Id)
 
-		fmt.Println("deleting", path)
-
 		_, err := db.Delete(ctx, path)
 		if err != nil {
 			fmt.Println("failed to delete resource", err)

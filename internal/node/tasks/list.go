@@ -75,7 +75,7 @@ func (t *TaskList) executeUnbound(ctx context.Context, task Task) {
 		case <-ticker.C:
 			{
 				if err := task.Execute(ctx, t.e); err != nil {
-					fmt.Println("failed to execute task", err)
+					fmt.Println(reflect.TypeOf(task).Kind().String(), "failed to execute task", err)
 				}
 			}
 		}
