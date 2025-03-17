@@ -83,7 +83,7 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 			d.File = new(spec.MachineSpecDiskFile)
 
 			disks = append(disks, d)
-			rockferry.MachineEnsureUniqueDiskTargets(disks, rockferry.MachineDiskTargetBaseVD)
+			rockferry.MachineEnsureUniqueDiskTargets(disks, rockferry.MachineDiskTargetBaseSD)
 			continue
 		}
 	}
@@ -102,7 +102,7 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 
 		disks = append(disks, cdrom)
 
-		rockferry.MachineEnsureUniqueDiskTargets(disks, rockferry.MachineDiskTargetBaseVD)
+		rockferry.MachineEnsureUniqueDiskTargets(disks, rockferry.MachineDiskTargetBaseSD)
 	}
 
 	return disks, nil

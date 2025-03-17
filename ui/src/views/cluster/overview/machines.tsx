@@ -34,7 +34,7 @@ export const MachinesTab: React.FC<Props> = ({ cluster }) => {
             <Table.Root>
                 <MachinesHeader withRole />
                 <Table.Body>
-                    {cluster.spec!.nodes.map((node) => (
+                    {cluster.spec?.nodes?.map((node) => (
                         <NodeRow key={node.machine_id} node={node} />
                     ))}
                 </Table.Body>
