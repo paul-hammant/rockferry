@@ -102,10 +102,6 @@ func (c Controller) List(ctx context.Context, req *controllerapi.ListRequest) (*
 			}
 		}
 
-		if resource.Kind == rockferry.ResourceKindMachineRequest {
-			fmt.Println(resource.Phase)
-		}
-
 		response.Resources = append(response.Resources, resource)
 	}
 
@@ -147,8 +143,6 @@ func (c Controller) Patch(ctx context.Context, req *controllerapi.PatchRequest) 
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("patching: ", path)
 
 	_, err = c.Db.Put(ctx, path, string(modified))
 	if err != nil {
