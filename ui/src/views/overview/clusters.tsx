@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { list } from "../../data/queries/list";
 import { ResourceKind } from "../../types/resource";
-import { Table, Card, IconButton, Text, Button } from "@radix-ui/themes";
+import { Table, Card, Text, Button } from "@radix-ui/themes";
 import {
     Cluster,
     ClusterNodeKind,

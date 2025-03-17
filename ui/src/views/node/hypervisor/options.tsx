@@ -5,6 +5,6 @@ interface Props {
     node: Resource<Node>;
 }
 
-export const OptionsView: React.FC<Props> = ({ node }) => {
+export const OptionsView: React.FC<Props> = ({}) => {
     return <div>Options</div>;
 };

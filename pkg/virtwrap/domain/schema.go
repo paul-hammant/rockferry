@@ -566,6 +566,11 @@ type Disk struct {
 	Shareable          *Shareable    `xml:"shareable,omitempty"`
 }
 
+type DiskWithXMLName struct {
+	XMLName xml.Name `xml:"disk"`
+	Disk
+}
+
 type DiskAuth struct {
 	Username string      `xml:"username,attr"`
 	Secret   *DiskSecret `xml:"secret,omitempty"`

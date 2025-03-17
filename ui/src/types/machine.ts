@@ -1,9 +1,20 @@
 import { Topology } from "./topology";
 
+export interface MachineDiskTarget {
+    dev: string;
+}
+
+export interface MachineDiskFile {}
+
 export interface MachineDisk {
     device: string;
     type: string;
     volume: string;
+
+    key: string;
+    file?: MachineDiskFile;
+
+    target: MachineDiskTarget;
 }
 
 export interface MachineInterface {

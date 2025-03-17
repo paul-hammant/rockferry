@@ -198,5 +198,5 @@ func (c *Client) DeleteStorageVolume(key string) error {
 		return err
 	}
 
-	return c.v.StorageVolDelete(vol, libvirt.StorageVolDeleteZeroed)
+	return c.v.StorageVolDelete(vol, libvirt.StorageVolDeleteNormal)
 }

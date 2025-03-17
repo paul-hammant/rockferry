@@ -33,7 +33,7 @@ export const NodesTab: React.FC<unknown> = () => {
                 </Table.Header>
 
                 <Table.Body>
-                    {nodes.data?.list.map((node) => {
+                    {nodes.data?.list?.map((node) => {
                         const color = "green";
 
                         const uptime = getUptime(node.spec!.uptime!);

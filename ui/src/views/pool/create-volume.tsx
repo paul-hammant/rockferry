@@ -14,6 +14,7 @@ import { useParams } from "react-router";
 import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { createVolume } from "../../data/mutations/volumes";
+import { Volume } from "../../types/volume";
 
 interface CreateVolumeValues {
     name: string;
@@ -45,7 +46,7 @@ export const CreateVolumeView: React.FC<unknown> = () => {
                                     Units.Bytes,
                                 );
 
-                                const input: CreateResourceInput = {
+                                const input: CreateResourceInput<Volume> = {
                                     owner_ref: {
                                         id: poolId!,
                                         kind: ResourceKind.StoragePool,
@@ -56,6 +57,8 @@ export const CreateVolumeView: React.FC<unknown> = () => {
                                         name: values.name,
                                         capacity: capacity,
                                         allocation: capacity,
+                                        key: "",
+                                        pool: "",
                                     },
                                 };
 

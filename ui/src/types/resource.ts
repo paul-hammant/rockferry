@@ -47,11 +47,12 @@ export interface Status {
 }
 
 // TODO: avoid using any
-export interface CreateResourceInput {
+export interface CreateResourceInput<S> {
+    id?: string;
     kind: string;
     annotations: any;
     owner_ref: OwnerRef | undefined;
-    spec: any;
+    spec: S;
 }
 
 export interface DeleteResourceInput {

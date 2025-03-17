@@ -33,7 +33,7 @@ export const MakeDefault: React.FC<Props> = ({ pool, isDefault }) => {
     }
 
     const disableAll = () => {
-        data?.list.map((pool) => {
+        data?.list?.map((pool) => {
             const observer = jsonpatch.observe<Resource<Pool>>(pool);
             pool.annotations = {
                 "rockferry.default": "no",

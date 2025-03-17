@@ -7,8 +7,7 @@ import (
 	"time"
 
 	"github.com/eskpil/rockferry/internal/controller/controllers/common"
-	"github.com/eskpil/rockferry/internal/controller/db"
-	"github.com/eskpil/rockferry/internal/controller/models"
+	"github.com/eskpil/rockferry/internal/controller/runtime"
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/labstack/echo/v4"
@@ -35,34 +34,14 @@ func Patch() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, common.MalformedInput())
 		}
 
-		path := fmt.Sprintf("%s/%s/%s", models.RootKey, input.Kind, input.Id)
+		r := runtime.ExtractRuntime(c)
 
-		db := db.Extract(c)
+		if err := r.Patch(ctx, input.Kind, input.Id, input.Patches); err != nil {
+			if err == rockferry.ErrorNotFound {
+				return c.JSON(http.StatusNotFound, common.NotFound())
+			}
 
-		res, err := db.Get(ctx, path)
-		if err != nil {
-			fmt.Println("failed to fetch resource", err)
-			return c.JSON(http.StatusInternalServerError, common.InternalServerError())
-		}
-
-		if 0 >= len(res.Kvs) {
-			return c.JSON(http.StatusNotFound, common.NotFound())
-		}
-
-		if 2 <= len(res.Kvs) {
-			panic("more than 1 response")
-		}
-
-		original := res.Kvs[0].Value
-
-		modified, err := input.Patches.Apply(original)
-		if err != nil {
-			panic(err)
-		}
-
-		_, err = db.Put(ctx, path, string(modified))
-		if err != nil {
-			panic(err)
+			return c.JSON(http.StatusBadRequest, common.InternalServerError())
 		}
 
 		response := new(struct{ Ok bool })

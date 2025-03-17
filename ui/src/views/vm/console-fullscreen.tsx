@@ -4,6 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { get } from "../../data/queries/get";
 import { Machine, MachineStatus } from "../../types/machine";
 import { ResourceKind } from "../../types/resource";
+import { Node } from "../../types/node";
+import { Box } from "@radix-ui/themes";
+import { WithOwner } from "../../components/withowner";
 
 export const ConsoleFullscreen: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
@@ -25,5 +28,11 @@ export const ConsoleFullscreen: React.FC<unknown> = () => {
         return <div>loading..</div>;
     }
 
-    return <VncConsole vm={vm!} />;
+    return (
+        <Box style={{ height: "100vh" }}>
+            <WithOwner<Node> res={vm!}>
+                {({ owner }) => <VncConsole vm={vm!} node={owner} fullscreen />}
+            </WithOwner>
+        </Box>
+    );
 };

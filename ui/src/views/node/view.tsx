@@ -23,6 +23,8 @@ import { Instance } from "../../types/instance";
 import { getUptime } from "../../utils/uptime";
 import { useTabState } from "../../hooks/tabstate";
 import { HypervisorTab } from "./hypervisor";
+import { Machine, MachineStatus } from "../../types/machine";
+import { list } from "../../data/queries/list";
 
 const Title: React.FC<{ node: Resource<Node> }> = ({ node }) => {
     const navigate = useNavigate();
@@ -213,11 +215,33 @@ export const NodeView: React.FC<unknown> = () => {
 };
 
 const MainArea: React.FC<{ node: Resource<Node> }> = ({ node }) => {
+    const {
+        data: vms,
+        isError,
+        isLoading,
+    } = useQuery({
+        queryKey: [ResourceKind.Node, node.id, ResourceKind.Machine],
+        queryFn: () =>
+            list<Machine, MachineStatus>(
+                ResourceKind.Machine,
+                node.id,
+                ResourceKind.Node,
+            ),
+    });
+
+    if (isError) {
+        return <div>error</div>;
+    }
+
+    if (isLoading) {
+        return <div>loading..</div>;
+    }
+
     return (
         <Card size="2">
             <Flex dir="row" justify="between" gap="3">
                 <Card size="2" className="w-100 center">
-                    vms: <Badge>23</Badge>
+                    vms: <Badge>{vms?.list?.length}</Badge>
                 </Card>
                 <Card size="2" className="w-100"></Card>
                 <Card size="2" className="w-100"></Card>

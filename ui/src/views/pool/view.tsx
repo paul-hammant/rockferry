@@ -1,4 +1,4 @@
-import { Badge, Box, Button, Separator, Table, Text } from "@radix-ui/themes";
+import { Badge, Box, Separator, Table, Text } from "@radix-ui/themes";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
 import { convert, Units } from "../../utils/conversion";
@@ -10,7 +10,8 @@ import { useNavigate } from "react-router";
 import { Node } from "../../types/node";
 import { Volume } from "../../types/volume";
 import { Card } from "@radix-ui/themes/src/index.js";
-import { MakeDefault } from "./make-default";
+import { checkVolumeAllocationStatus } from "../../utils/allocationstatus";
+import { ActionRow } from "./actionrow";
 
 const Title: React.FC<{ pool: Resource<Pool>; isDefault: boolean }> = ({
     pool,
@@ -60,7 +61,6 @@ const Title: React.FC<{ pool: Resource<Pool>; isDefault: boolean }> = ({
 
 export const PoolView: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
 
     const pool = useQuery({
         queryKey: [ResourceKind.StoragePool, id],
@@ -101,28 +101,9 @@ export const PoolView: React.FC<unknown> = () => {
             <Box width="100%" pt="2">
                 <Separator size="4" />
             </Box>
-            <Box pt="3">
-                <Button
-                    variant="soft"
-                    color="purple"
-                    onClick={() =>
-                        navigate(`/pools/${pool.data!.id!}/create-volume`)
-                    }
-                >
-                    Create
-                </Button>
-                <Button
-                    ml="3"
-                    variant="soft"
-                    color="purple"
-                    onClick={() =>
-                        navigate(`/pools/${pool.data!.id!}/upload-volume`)
-                    }
-                >
-                    Upload
-                </Button>
-                <MakeDefault isDefault={isDefault} pool={pool.data!} />
-            </Box>
+
+            <ActionRow pool={pool.data!} />
+
             <Card mt="3">
                 <Table.Root layout="auto">
                     <Table.Header>
@@ -137,9 +118,7 @@ export const PoolView: React.FC<unknown> = () => {
                             <Table.ColumnHeaderCell>
                                 Usage
                             </Table.ColumnHeaderCell>
-                            <Table.ColumnHeaderCell>
-                                Phase
-                            </Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell />
                         </Table.Row>
                     </Table.Header>
 
@@ -147,9 +126,10 @@ export const PoolView: React.FC<unknown> = () => {
                         {volumes.data?.list?.map((resource) => {
                             const volume = resource.spec!;
 
-                            const vm_name = resource.annotations!["vm.name"];
+                            const vm_name =
+                                resource.annotations!["machinereq.name"];
 
-                            const capacity_gb = Math.round(
+                            const capacity = Math.round(
                                 convert(
                                     volume.capacity,
                                     Units.Bytes,
@@ -157,7 +137,7 @@ export const PoolView: React.FC<unknown> = () => {
                                 ),
                             );
 
-                            const allocated_gb = Math.round(
+                            const allocation = Math.round(
                                 convert(
                                     volume.allocation,
                                     Units.Bytes,
@@ -183,19 +163,22 @@ export const PoolView: React.FC<unknown> = () => {
                                         )}
                                     </Table.Cell>
                                     <Table.Cell>
-                                        <Badge color="green">
-                                            {allocated_gb} Gb
+                                        <Badge
+                                            color={
+                                                checkVolumeAllocationStatus(
+                                                    capacity,
+                                                    allocation,
+                                                ) as any
+                                            }
+                                        >
+                                            {allocation} Gb
                                         </Badge>
                                         /
                                         <Badge color="purple">
-                                            {capacity_gb} Gb
+                                            {capacity} Gb
                                         </Badge>
                                     </Table.Cell>
-                                    <Table.Cell>
-                                        <Badge color="amber">
-                                            {resource.status.phase}
-                                        </Badge>
-                                    </Table.Cell>
+                                    <Table.Cell></Table.Cell>
                                 </Table.Row>
                             );
                         })}

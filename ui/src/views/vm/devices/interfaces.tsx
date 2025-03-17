@@ -15,7 +15,11 @@ export const InterfacesView: React.FC<Props> = ({ vm }) => {
                     <Table.ColumnHeaderCell>Mac</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>Model</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>
-                        <Button variant="soft" size="1">
+                        <Button
+                            variant="soft"
+                            size="1"
+                            style={{ width: "70%" }}
+                        >
                             Add
                         </Button>
                     </Table.ColumnHeaderCell>
@@ -37,7 +41,12 @@ export const InterfacesView: React.FC<Props> = ({ vm }) => {
                                 {iface.model}
                             </Table.RowHeaderCell>
                             <Table.Cell>
-                                <Button variant="soft" color="red" size="1">
+                                <Button
+                                    variant="soft"
+                                    color="red"
+                                    size="1"
+                                    style={{ width: "70%" }}
+                                >
                                     Remove
                                 </Button>
                             </Table.Cell>

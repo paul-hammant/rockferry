@@ -13,6 +13,7 @@ import { CreateClusterView } from "./views/cluster/create";
 import { ClusterOverview } from "./views/cluster/overview";
 import { ConsoleFullscreen } from "./views/vm/console-fullscreen";
 import { Livedata } from "./livedata";
+import { AddDiskView } from "./views/vm/add-disk";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,10 @@ function App() {
                             <Route
                                 path="vm/:id/console-fullscreen"
                                 element={<ConsoleFullscreen />}
+                            />
+                            <Route
+                                path="vm/:id/add-disk"
+                                element={<AddDiskView />}
                             />
                             <Route path="nodes/:id" element={<NodeView />} />
                             <Route

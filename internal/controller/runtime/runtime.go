@@ -8,6 +8,7 @@ import (
 	"github.com/eskpil/rockferry/internal/controller/models"
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
+	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/google/uuid"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -82,6 +83,43 @@ func (r *Runtime) Update(ctx context.Context, resource *rockferry.Generic) error
 
 	_, err = r.Db.Put(ctx, path, string(bytes))
 	return err
+}
+
+func (r *Runtime) Patch(ctx context.Context, kind rockferry.ResourceKind, id string, patch jsonpatch.Patch) error {
+	path := fmt.Sprintf("%s/%s/%s", models.RootKey, kind, id)
+
+	res, err := r.Db.Get(ctx, path)
+	if err != nil {
+		fmt.Println("failed to fetch resource", err)
+		return rockferry.ErrorInternalServerError
+	}
+
+	if 0 >= len(res.Kvs) {
+		return rockferry.ErrorNotFound
+	}
+
+	if 2 <= len(res.Kvs) {
+		return rockferry.ErrorUnexpectedResults
+	}
+
+	original := res.Kvs[0].Value
+
+	modified, err := patch.Apply(original)
+	if err != nil {
+		panic(err)
+	}
+
+	generic := new(rockferry.Generic)
+	if err := json.Unmarshal(modified, generic); err != nil {
+		return rockferry.ErrorInternalServerError
+	}
+
+	_, err = r.Db.Put(ctx, path, string(modified))
+	if err != nil {
+		return rockferry.ErrorInternalServerError
+	}
+
+	return nil
 }
 
 func (r *Runtime) CreateResource(ctx context.Context, resource *rockferry.Generic) error {
@@ -169,10 +207,6 @@ func (r *Runtime) Watch(ctx context.Context, action rockferry.WatchAction, kind 
 						(usedAction == rockferry.WatchActionDelete && action != rockferry.WatchActionDelete) {
 						continue
 					}
-				}
-
-				if event.PrevKv != nil && action == rockferry.WatchActionDelete {
-					event.Kv = event.PrevKv
 				}
 
 				if event.PrevKv != nil && action == rockferry.WatchActionDelete {

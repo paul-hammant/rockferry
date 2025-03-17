@@ -23,6 +23,10 @@ type MachineSpecInterface struct {
 	Bridge  *string `json:"bridge"`
 }
 
+type MachineSpecDiskTarget struct {
+	Dev string `json:"dev"`
+}
+
 type MachineSpecDiskFile struct {
 }
 
@@ -34,10 +38,11 @@ type MachineSpecDiskNetwork struct {
 }
 
 type MachineSpecDisk struct {
-	Device string `json:"device"`
-	Type   string `json:"type"`
-	Key    string `json:"key"`
-	Volume string `json:"volume"`
+	Device string                 `json:"device"`
+	Type   string                 `json:"type"`
+	Key    string                 `json:"key"`
+	Volume string                 `json:"volume"`
+	Target *MachineSpecDiskTarget `json:"target"`
 
 	File    *MachineSpecDiskFile    `json:"file,omitempty"`
 	Network *MachineSpecDiskNetwork `json:"network,omitempty"`

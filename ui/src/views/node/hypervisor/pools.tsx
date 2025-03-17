@@ -44,7 +44,7 @@ export const PoolsView: React.FC<Props> = ({ node }) => {
             </Table.Header>
 
             <Table.Body>
-                {pools?.list.map((pool) => {
+                {pools?.list?.map((pool) => {
                     let default_ = "no";
 
                     if (

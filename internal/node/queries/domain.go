@@ -12,6 +12,48 @@ import (
 	"github.com/google/uuid"
 )
 
+func createDisk(spec *spec.MachineSpecDisk) (disk *domain.Disk) {
+	disk = new(domain.Disk)
+
+	disk.Device = spec.Device
+
+	disk.Driver = new(domain.DiskDriver)
+	disk.Driver.Name = "qemu"
+	disk.Driver.Type = "raw"
+
+	disk.Target.Device = spec.Target.Dev
+
+	if spec.Type == "network" {
+		disk.Type = "network"
+
+		disk.Auth = new(domain.DiskAuth)
+
+		disk.Auth.Username = spec.Network.Auth.Username
+		disk.Auth.Secret = new(domain.DiskSecret)
+		disk.Auth.Secret.Type = spec.Network.Auth.Type
+		disk.Auth.Secret.UUID = spec.Network.Auth.Secret
+
+		disk.Source.Protocol = spec.Network.Protocol
+
+		disk.Source.Name = spec.Key
+		disk.Source.Host = new(domain.DiskSourceHost)
+		disk.Source.Host.Name = spec.Network.Hosts[0].Name
+		disk.Source.Host.Port = spec.Network.Hosts[0].Port
+
+		disk.Target.Bus = "virtio"
+	}
+
+	if spec.Type == "file" {
+		disk.Type = "file"
+
+		disk.Source.File = spec.Key
+
+		disk.Target.Bus = "sata"
+	}
+
+	return disk
+}
+
 // TODO: There are a lot more configuration options here which can be set.
 func (c *Client) CreateDomain(id string, spec *spec.MachineSpec) error {
 	schema := new(domain.Schema)
@@ -64,50 +106,7 @@ func (c *Client) CreateDomain(id string, spec *spec.MachineSpec) error {
 	schema.SysInfo.System = append(schema.SysInfo.System, domain.Entry{Name: "uuid", Value: id})
 
 	for _, d := range spec.Disks {
-		disk := new(domain.Disk)
-
-		if d.Type == "network" {
-			disk.Type = "network"
-			disk.Device = d.Device
-
-			disk.Driver = new(domain.DiskDriver)
-			disk.Driver.Name = "qemu"
-			disk.Driver.Type = "raw"
-
-			disk.Auth = new(domain.DiskAuth)
-
-			disk.Auth.Username = d.Network.Auth.Username
-			disk.Auth.Secret = new(domain.DiskSecret)
-			disk.Auth.Secret.Type = d.Network.Auth.Type
-			disk.Auth.Secret.UUID = d.Network.Auth.Secret
-
-			disk.Source.Protocol = d.Network.Protocol
-			disk.Source.Name = d.Key
-			disk.Source.Host = new(domain.DiskSourceHost)
-			disk.Source.Host.Name = d.Network.Hosts[0].Name
-			disk.Source.Host.Port = d.Network.Hosts[0].Port
-
-			disk.Target.Bus = "virtio"
-			// TODO: Create a function which returns unique device names
-			disk.Target.Device = "vda"
-		}
-
-		if d.Type == "file" {
-			disk.Type = "file"
-			disk.Device = d.Device
-
-			disk.Source.File = d.Key
-
-			disk.Driver = new(domain.DiskDriver)
-			disk.Driver.Name = "qemu"
-			disk.Driver.Type = "raw"
-
-			disk.Target.Bus = "sata"
-			disk.Target.Device = "sda"
-
-		}
-
-		schema.Devices.Disks = append(schema.Devices.Disks, *disk)
+		schema.Devices.Disks = append(schema.Devices.Disks, *createDisk(d))
 	}
 
 	for _, i := range spec.Interfaces {
@@ -333,4 +332,45 @@ func (c *Client) UndefineDomain(id string) error {
 	}
 
 	return c.v.DomainUndefine(dom)
+}
+
+func (c *Client) DomainAddDisk(id string, spec *spec.MachineSpecDisk) error {
+	domId := uuid.MustParse(id)
+
+	dom, err := c.v.DomainLookupByUUID(libvirt.UUID(domId))
+	if err != nil {
+		return err
+	}
+
+	disk := new(domain.DiskWithXMLName)
+	disk.Disk = *createDisk(spec)
+
+	xml, err := xml.Marshal(disk)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(xml))
+	return c.v.DomainAttachDevice(dom, string(xml))
+}
+
+func (c *Client) DomainRemoveDisk(id string, spec *spec.MachineSpecDisk) error {
+	domId := uuid.MustParse(id)
+
+	dom, err := c.v.DomainLookupByUUID(libvirt.UUID(domId))
+	if err != nil {
+		return err
+	}
+
+	disk := new(domain.DiskWithXMLName)
+	disk.Disk = *createDisk(spec)
+
+	xml, err := xml.Marshal(disk)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(xml))
+
+	return c.v.DomainDetachDevice(dom, string(xml))
 }

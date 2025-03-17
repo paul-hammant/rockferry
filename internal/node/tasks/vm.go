@@ -6,14 +6,12 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/eskpil/rockferry/pkg/mac"
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/google/uuid"
-	"github.com/r3labs/diff"
 	"github.com/siderolabs/go-pointer"
 )
 
@@ -72,6 +70,10 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 			d.Network.Protocol = pool.Spec.Type
 			d.Network.Hosts = pool.Spec.Source.Hosts
 			d.Network.Auth = *pool.Spec.Source.Auth
+
+			disks = append(disks, d)
+			rockferry.MachineEnsureUniqueDiskTargets(disks, rockferry.MachineDiskTargetBaseVD)
+			continue
 		}
 
 		if pool.Spec.Type == "dir" {
@@ -79,22 +81,28 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 			d.Device = "disk"
 
 			d.File = new(spec.MachineSpecDiskFile)
-		}
 
-		disks = append(disks, d)
+			disks = append(disks, d)
+			rockferry.MachineEnsureUniqueDiskTargets(disks, rockferry.MachineDiskTargetBaseVD)
+			continue
+		}
 	}
 
+	//  TODO: Refer to volume somehow?
 	if t.Request.Spec.Cdrom.Key != "" {
 		// TODO: CDROM can be network disk as well
 		cdrom := new(spec.MachineSpecDisk)
 
 		cdrom.Key = t.Request.Spec.Cdrom.Key
+
 		// This could probably be more clean
 		cdrom.File = new(spec.MachineSpecDiskFile)
 		cdrom.Device = "cdrom"
 		cdrom.Type = "file"
 
 		disks = append(disks, cdrom)
+
+		rockferry.MachineEnsureUniqueDiskTargets(disks, rockferry.MachineDiskTargetBaseVD)
 	}
 
 	return disks, nil
@@ -205,11 +213,11 @@ func (t *CreateVirtualMachineTask) Execute(ctx context.Context, executor *Execut
 
 	res.Status.State = spec.MachineStatusStateBooting
 
+	res.Spec = *machineSpec
+
 	if err := executor.Libvirt.CreateDomain(vmId, machineSpec); err != nil {
 		return err
 	}
-
-	res.Spec = *machineSpec
 
 	return executor.Rockferry.Machines().Create(ctx, res)
 }
@@ -296,49 +304,4 @@ func (t *SyncMachineStatusesTask) Execute(ctx context.Context, e *Executor) erro
 func (t *SyncMachineStatusesTask) Repeats() *time.Duration {
 	timeout := time.Second * 2
 	return &timeout
-}
-
-type UpdateVmTask struct {
-	Machine *rockferry.Machine
-	Prev    *rockferry.Machine
-}
-
-func (t *UpdateVmTask) Execute(ctx context.Context, e *Executor) error {
-	changes, err := diff.Diff(t.Machine, t.Prev)
-	if err != nil {
-		return err
-	}
-
-	for _, change := range changes {
-		path := strings.Join(change.Path, ".")
-		if change.Type == "update" && path == "Status.State" {
-			desired := change.To.(string)
-			current, err := e.Libvirt.GetDomainState(t.Machine.Id)
-			if err != nil {
-				return err
-			}
-
-			if current == spec.MachineStatusStateStopped && desired == spec.MachineStatusStateBooting {
-				fmt.Println("starting", t.Machine.Spec.Name)
-				return e.Libvirt.StartDomain(t.Machine.Id)
-			}
-
-			if current == spec.MachineStatusStateRunning && desired == spec.MachineStatusStateShutdown {
-				if strings.Contains(strings.Join(t.Machine.Status.Errors, " "), "Guest agent is not responding: QEMU guest agent is not connected") {
-					fmt.Println("destroy", t.Machine.Spec.Name)
-					return e.Libvirt.DestroyDomain(t.Machine.Id)
-				} else {
-					fmt.Println("shutdown", t.Machine.Spec.Name)
-					return e.Libvirt.ShutdownDomain(t.Machine.Id)
-				}
-
-			}
-		}
-	}
-
-	return nil
-}
-
-func (t *UpdateVmTask) Repeats() *time.Duration {
-	return nil
 }

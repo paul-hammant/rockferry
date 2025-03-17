@@ -7,6 +7,7 @@ import (
 
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/eskpil/rockferry/pkg/rockferry/status"
+	"github.com/mohae/deepcopy"
 )
 
 type SyncStorageVolumesTask struct {
@@ -97,8 +98,7 @@ func (t *CreateVolumeTask) Execute(ctx context.Context, executor *Executor) erro
 		return err
 	}
 
-	modified := new(rockferry.StorageVolume)
-	*modified = *t.Volume
+	modified := deepcopy.Copy(t.Volume).(*rockferry.StorageVolume)
 	modified.Spec = *updatedSpec
 
 	return executor.Rockferry.StorageVolumes().Patch(ctx, t.Volume, modified)

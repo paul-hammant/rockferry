@@ -40,7 +40,7 @@ export const NetworksView: React.FC<Props> = ({ node }) => {
             </Table.Header>
 
             <Table.Body>
-                {pools?.list.map((network) => {
+                {pools?.list?.map((network) => {
                     let default_ = "no";
 
                     if (

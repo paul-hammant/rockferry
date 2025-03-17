@@ -4,8 +4,8 @@ export interface Response {
     ok: boolean;
 }
 
-export const createMachineRequest = async (
-    input: CreateResourceInput,
+export const createMachineRequest = async <S>(
+    input: CreateResourceInput<S>,
 ): Promise<Response> => {
     return fetch("http://10.100.0.186:8080/v1/resources", {
         method: "POST",
