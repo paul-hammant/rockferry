@@ -2,51 +2,37 @@
 
 ![Rockferry demo](./assets/rockferry-demo.png)
 
-## Not production ready
+## Not Production Ready
 
-Rockferry is a modern vm orchestration platform. It aims to deliever a robust foundation for virtual private cloud providers. It wraps around
-[libvirt](https://libvirt.org), a great tool for working with KVM virtual machines.
+Rockferry is a modern VM orchestration platform designed to provide a robust foundation for virtual private cloud providers. It wraps around [libvirt](https://libvirt.org), a powerful tool for managing KVM virtual machines.
 
-### Why not use esxi, or hyper-v.
+### Why Not Use ESXi or Hyper-V?
 
-Lets formulate that question differently, why not use libvirt directly for example?
-Yes, you could just built a terraform script which talks to a libvirt host, but who
-is gonna keep the state?. Libvirt itself is not a orchestrator, it just acts as a layer
-above the hardware hypervisor. A very neat layer indeed. But, this ofcourse means that
-libvirt is not able to know what other nodes to migrate a vm too, for example. There is also
-no simple solution which can deploy the same libvirt configuration against multiple nodes, puppet? Ansible.
-No thank you. And my personal biggest hunch against these solutions is that they are not API-driver.
-They are not written for API-first usecases.
+A better question might be: why not use libvirt directly? Yes, you could write a Terraform script to communicate with a libvirt host—but who manages the state? Libvirt itself is not an orchestrator; it simply acts as a layer above the hardware hypervisor. While it’s an excellent tool, it lacks built-in orchestration features such as VM migration across nodes or the ability to deploy the same configuration across multiple hosts.
 
-The whole goal of Rockferry is to be a rock solid foundation performing magic in our infrastructure.
-It is supposed to be a layer between the cloud platforms and the hypervisors. It is supposed to be
-the backbone of datacenterinfrastructure, and thus it must provide consistent behaviour accross a
-latitude of nodes. It must thus also be highly avaliable, we can not afford a Rockferry instance
-to go black. That is why Rockferry is a highly avaliable service, it can spread itself out over
-many nodes. Exactly like a kubernetes controlplane.
+The goal of Rockferry is to provide a rock-solid foundation for seamless infrastructure orchestration. It serves as a bridge between cloud platforms and hypervisors, forming the backbone of data center infrastructure. Rockferry must deliver consistent behavior across multiple nodes while ensuring high availability. A Rockferry instance going offline isn’t an option. That’s why it is designed to be highly available, capable of distributing itself across multiple nodes—similar to a Kubernetes control plane.
 
-Rockferry is not a cloud provider, but rather the foundation of one. It is the foundation for
-a on-premisis cloud platform.
+Rockferry is not a cloud provider but rather the foundation for one—an essential layer for on-premises cloud platforms.
 
 ## Goals
 
-- Support multiple storage backends. iscsi, nfs etc.
+- Support multiple storage backends (iSCSI, NFS, etc.).
 - OpenID authentication.
-- Node self registration.
-- Clustering of rockferry controlplane.
-- Migrate vms if node is reported as down. (only possible when the disk is located on a network storage backend)
+- Node self-registration.
+- Clustering of the Rockferry control plane.
+- Automated VM migration when a node goes down (only possible with network-backed storage).
 - Easy installation and setup.
 
-## Features so far
+## Features So Far
 
-- Use Ceph and Dir as storage backend
-- Create Vms through the rockferry UI.
-- Day 2 operations on vms such as
-  - Adding and Deleting disks
-- Somewhat sync already existing libvirt installations.
-- Orchestrate kubernetes clusters with talos. Rockferry can create a basic kubernetes cluster using Talos.
-  - No day 2 operations yet.
+- Supports Ceph and Dir as storage backends.
+- Create VMs via the Rockferry UI.
+- Basic day-2 operations on VMs, such as:
+  - Adding and deleting disks.
+- Partial synchronization with existing libvirt installations.
+- Kubernetes orchestration with Talos—Rockferry can deploy a basic Kubernetes cluster using Talos.
+  - No day-2 operations yet.
 
-## Contribute?
+## Want to Contribute?
 
-[Contribue](./CONTRIBUTE.MD)
+Check out the [Contribution Guide](./CONTRIBUTE.MD).
