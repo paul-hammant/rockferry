@@ -46,3 +46,7 @@ a on-premisis cloud platform.
 - Somewhat sync already existing libvirt installations.
 - Orchestrate kubernetes clusters with talos. Rockferry can create a basic kubernetes cluster using Talos.
   - No day 2 operations yet.
+
+## Contribute?
+
+[Contribue](./CONTRIBUTE.MD)

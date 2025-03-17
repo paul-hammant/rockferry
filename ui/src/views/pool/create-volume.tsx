@@ -13,8 +13,8 @@ import { convert, Units } from "../../utils/conversion";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
-import { createVolume } from "../../data/mutations/volumes";
 import { Volume } from "../../types/volume";
+import { create } from "../../data/mutations/create";
 
 interface CreateVolumeValues {
     name: string;
@@ -24,7 +24,7 @@ interface CreateVolumeValues {
 export const CreateVolumeView: React.FC<unknown> = () => {
     const navigate = useNavigate();
     const { id: poolId } = useParams<{ id: string }>();
-    const { mutate } = useMutation({ mutationFn: createVolume });
+    const { mutate } = useMutation({ mutationFn: create<Volume> });
 
     return (
         <Box p="9">

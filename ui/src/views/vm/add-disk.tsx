@@ -53,7 +53,7 @@ export const AddDiskView: React.FC<unknown> = () => {
     });
 
     const { mutate: createMutation } = useMutation({
-        mutationFn: create,
+        mutationFn: create<any>,
     });
 
     const { mutate: patchMutation } = useMutation({

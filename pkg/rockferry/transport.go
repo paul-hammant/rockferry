@@ -7,7 +7,6 @@ import (
 
 	"github.com/eskpil/rockferry/controllerapi"
 	"github.com/eskpil/rockferry/pkg/convert"
-	rstatus "github.com/eskpil/rockferry/pkg/rockferry/status"
 	"github.com/snorwin/jsonpatch"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -200,7 +199,7 @@ func (t *Transport) List(ctx context.Context, kind ResourceKind, id string, owne
 	if err != nil {
 		if s, ok := status.FromError(err); ok && s != nil {
 			if s.Code() == codes.NotFound {
-				return nil, rstatus.NewError(rstatus.ErrNoResults, "no results")
+				return nil, ErrorNotFound
 			}
 		}
 

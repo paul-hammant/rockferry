@@ -270,7 +270,7 @@ func (t *SyncMachineStatusesTask) Execute(ctx context.Context, e *Executor) erro
 	owner.Id = e.NodeId
 	owner.Kind = rockferry.ResourceKindNode
 	machines, err := iface.List(ctx, "", owner)
-	if err != nil {
+	if err != nil && err != rockferry.ErrorNotFound {
 		return err
 	}
 

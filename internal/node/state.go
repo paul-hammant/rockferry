@@ -14,12 +14,39 @@ type State struct {
 	t *tasks.TaskList
 }
 
+func createNodeResource(client *rockferry.Client, conf *config.Config) error {
+	node := new(rockferry.Node)
+
+	node.Id = conf.Id
+	node.Kind = rockferry.ResourceKindNode
+	node.Phase = rockferry.PhaseCreated
+
+	return client.Nodes().Create(context.Background(), node)
+}
+
+func ensureNodeResource(client *rockferry.Client, conf *config.Config) error {
+	_, err := client.Nodes().Get(context.Background(), conf.Id, nil)
+	if err != nil {
+		if err == rockferry.ErrorNotFound {
+			return createNodeResource(client, conf)
+		}
+
+		return err
+	}
+
+	return nil
+}
+
 func New(c *config.Config) (*State, error) {
 	var err error
 	state := new(State)
 
 	client, err := rockferry.New(c.Url)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := ensureNodeResource(client, c); err != nil {
 		return nil, err
 	}
 

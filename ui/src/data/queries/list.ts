@@ -1,3 +1,4 @@
+import { CONFIG } from "../../config";
 import { Resource, ResourceKind, Status } from "../../types/resource";
 import { List } from "../index";
 
@@ -14,7 +15,7 @@ export const list = async <T, S = Status>(
         params.append("owner_id", owner_id);
         params.append("owner_kind", owner_kind);
     }
-    return fetch(
-        `http://10.100.0.186:8080/v1/resources?${params.toString()}`,
-    ).then((res) => res.json());
+    return fetch(`${CONFIG.api_url}/v1/resources?${params.toString()}`).then(
+        (res) => res.json(),
+    );
 };

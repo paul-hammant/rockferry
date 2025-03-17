@@ -1,4 +1,5 @@
 import { List } from "..";
+import { CONFIG } from "../../config";
 import { Resource, ResourceKind, Status } from "../../types/resource";
 
 export const get = async <T, S = Status>(
@@ -18,7 +19,7 @@ export const get = async <T, S = Status>(
     }
 
     const resources: List<Resource<T, S>> = await fetch(
-        `http://10.100.0.186:8080/v1/resources?${params.toString()}`,
+        `${CONFIG.api_url}/v1/resources?${params.toString()}`,
         {},
     ).then((res) => res.json());
 

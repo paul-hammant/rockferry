@@ -11,6 +11,7 @@ import (
 	"github.com/eskpil/rockferry/pkg/rockferry"
 	"github.com/eskpil/rockferry/pkg/rockferry/spec"
 	"github.com/eskpil/rockferry/pkg/uname"
+	"github.com/mohae/deepcopy"
 	"github.com/shirou/gopsutil/v3/cpu"
 )
 
@@ -79,15 +80,12 @@ func readNodeCpu() (uint64, uint64, uint64, error) {
 }
 
 func (t *SyncNodeTask) Execute(ctx context.Context, e *Executor) error {
-	nodes, err := e.Rockferry.Nodes().List(ctx, e.NodeId, nil)
+	node, err := e.Rockferry.Nodes().Get(ctx, e.NodeId, nil)
 	if err != nil {
 		return err
 	}
 
-	original := nodes[0]
-
-	modified := new(rockferry.Node)
-	*modified = *original
+	modified := deepcopy.Copy(node).(*rockferry.Node)
 
 	modified.Spec.Hostname, _ = os.Hostname()
 

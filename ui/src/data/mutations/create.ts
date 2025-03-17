@@ -1,11 +1,14 @@
+import { CONFIG } from "../../config";
 import { CreateResourceInput } from "../../types/resource";
 
 export interface Response {
     ok: boolean;
 }
 
-export const create = async (input: CreateResourceInput): Promise<Response> => {
-    return fetch("http://10.100.0.186:8080/v1/resources", {
+export const create = async <S>(
+    input: CreateResourceInput<S>,
+): Promise<Response> => {
+    return fetch(`${CONFIG.api_url}/v1/resources`, {
         method: "POST",
         body: JSON.stringify(input),
         headers: {

@@ -1,3 +1,4 @@
+import { CONFIG } from "../../config";
 import { PatchResourceInput } from "../../types/resource";
 
 export interface Response {
@@ -5,7 +6,7 @@ export interface Response {
 }
 
 export const patch = async (input: PatchResourceInput): Promise<Response> => {
-    return fetch("http://10.100.0.186:8080/v1/resources", {
+    return fetch(`${CONFIG.api_url}/v1/resources`, {
         method: "PATCH",
         body: JSON.stringify(input),
         headers: {

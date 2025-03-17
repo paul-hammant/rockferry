@@ -75,7 +75,7 @@ func (t *TaskList) executeUnbound(ctx context.Context, task Task) {
 		case <-ticker.C:
 			{
 				if err := task.Execute(ctx, t.e); err != nil {
-					fmt.Println(reflect.TypeOf(task).Kind().String(), "failed to execute task", err)
+					fmt.Println(reflect.TypeOf(task).Elem().Name(), "failed to execute task", err)
 				}
 			}
 		}
@@ -95,7 +95,7 @@ func (t *TaskList) setResourcePhase(ctx context.Context, original *rockferry.Res
 
 func (t *TaskList) executeBound(ctx context.Context, task BoundTask) {
 	if err := task.Execute(ctx, t.e); err != nil {
-		fmt.Println(reflect.TypeOf(task).String())
+		fmt.Println(reflect.TypeOf(task).Elem().Elem().Name())
 		fmt.Println("task returned error", err)
 	}
 

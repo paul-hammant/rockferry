@@ -2,6 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { ResourceKind, WatchAction, WatchResponse } from "./types/resource";
 import { relatedQueryKeys } from "./data";
+import { CONFIG } from "./config";
+
 interface Props {
     children: React.ReactNode;
 }
@@ -16,7 +18,7 @@ export const Livedata: React.FC<Props> = ({ children }) => {
         params.append("kind", ResourceKind.All);
 
         const socket = new WebSocket(
-            "http://10.100.0.186:8080/v1/resources/events?" + params.toString(),
+            `${CONFIG.api_url}/v1/resources/events?${params.toString()}`,
         );
 
         socket.onmessage = (event) => {

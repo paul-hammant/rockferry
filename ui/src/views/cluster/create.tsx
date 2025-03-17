@@ -11,8 +11,8 @@ import {
 } from "@radix-ui/themes";
 import { Form, Formik, FormikHelpers } from "formik";
 import { useNavigate } from "react-router";
-import { CreateResourceInput, ResourceKind } from "../../types/resource";
-import { ClusterRequestNode } from "../../types/clusterrequest";
+import { ResourceKind } from "../../types/resource";
+import { ClusterRequest, ClusterRequestNode } from "../../types/clusterrequest";
 import { convert, Units } from "../../utils/conversion";
 import { useMutation } from "@tanstack/react-query";
 import { create } from "../../data/mutations/create";
@@ -32,7 +32,7 @@ interface CreateClusterRequestValues {
 export const CreateClusterView: React.FC<unknown> = () => {
     const navigate = useNavigate();
 
-    const { mutate } = useMutation({ mutationFn: create });
+    const { mutate } = useMutation({ mutationFn: create<ClusterRequest> });
 
     return (
         <Box p="9">
@@ -78,7 +78,7 @@ export const CreateClusterView: React.FC<unknown> = () => {
                                     control_planes.push(control_plane);
                                 }
 
-                                const input: CreateResourceInput = {
+                                const input = {
                                     owner_ref: undefined,
                                     annotations: {},
                                     kind: ResourceKind.ClusterRequest,
@@ -90,7 +90,7 @@ export const CreateClusterView: React.FC<unknown> = () => {
                                     },
                                 };
 
-                                mutate(input, {
+                                mutate(input as any, {
                                     onSuccess: () => {
                                         setSubmitting(false);
                                         navigate("/");

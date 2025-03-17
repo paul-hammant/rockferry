@@ -5,13 +5,12 @@ import (
 
 	"github.com/eskpil/rockferry/internal/node/tasks"
 	"github.com/eskpil/rockferry/pkg/rockferry"
-	"github.com/eskpil/rockferry/pkg/rockferry/status"
 )
 
 func (s *State) watchMachineRequests(ctx context.Context) error {
 	go func() {
 		requests, err := s.Client.MachineRequests().List(ctx, "", nil)
-		if err != nil && !status.Is(err, status.ErrNoResults) {
+		if err != nil && err != rockferry.ErrorNotFound {
 			return
 		}
 
@@ -78,7 +77,7 @@ func (s *State) watchMachines(ctx context.Context) error {
 
 func (s *State) watchStorageVolumes(ctx context.Context) error {
 	volumes, err := s.Client.StorageVolumes().List(ctx, "", nil)
-	if err != nil && !status.Is(err, status.ErrNoResults) {
+	if err != nil && err != rockferry.ErrorNotFound {
 		return err
 	}
 

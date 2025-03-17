@@ -13,13 +13,13 @@ import { Form, Formik, FormikHelpers } from "formik";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createMachineRequest } from "../../data/mutations/machinerequest";
 import { convert, Units } from "../../utils/conversion";
 import { CreateResourceInput, ResourceKind } from "../../types/resource";
 import { list } from "../../data/queries/list";
 import { Volume } from "../../types/volume";
 import { Network } from "../../types/network";
 import { PoolSelect } from "../../components/pool-select";
+import { create } from "../../data/mutations/create";
 
 const VolumeSelect: React.FC<{
     poolId: string;
@@ -143,7 +143,7 @@ export const CreateVmView: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    const { mutate } = useMutation({ mutationFn: createMachineRequest });
+    const { mutate } = useMutation({ mutationFn: create<MachineRequest> });
 
     return (
         <Box p="9">
@@ -205,17 +205,18 @@ export const CreateVmView: React.FC<unknown> = () => {
                                     ],
                                 };
 
-                                const input: CreateResourceInput = {
-                                    annotations: new Map(),
-                                    kind: ResourceKind.MachineRequest,
-                                    owner_ref: {
-                                        id: id!,
-                                        kind: ResourceKind.Node,
-                                    },
-                                    spec: machine_request_spec,
-                                };
+                                const input: CreateResourceInput<MachineRequest> =
+                                    {
+                                        annotations: new Map(),
+                                        kind: ResourceKind.MachineRequest,
+                                        owner_ref: {
+                                            id: id!,
+                                            kind: ResourceKind.Node,
+                                        },
+                                        spec: machine_request_spec,
+                                    };
 
-                                mutate(input, {
+                                mutate(input as any, {
                                     onSuccess: () => {
                                         setSubmitting(false);
                                         navigate(`/nodes/${id}`);
