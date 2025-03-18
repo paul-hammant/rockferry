@@ -6,6 +6,7 @@ import (
 	"net"
 	"sync"
 	"time"
+	"fmt"
 
 	"github.com/eskpil/rockferry/controllerapi"
 	"github.com/eskpil/rockferry/internal/controller"
@@ -115,6 +116,8 @@ func main() {
 		controllerapi.RegisterControllerApiServer(server, api)
 
 		reflection.Register(server)
+
+		fmt.Println("Serving gRPC api on port 9090")
 
 		if err := server.Serve(listener); err != nil {
 			slog.Error("could not serve requests", slog.Any("err", err))

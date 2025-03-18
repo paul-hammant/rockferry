@@ -5,7 +5,7 @@ export interface Config {
 // TODO: Can probably read this through vite?
 export const DevelopmentConfig: Config = {
     // For development change to your appropriate url here
-    api_url: "http://10.100.0.186:8080",
+    api_url: "http://localhost:8080",
 };
 
 export const CONFIG = DevelopmentConfig;

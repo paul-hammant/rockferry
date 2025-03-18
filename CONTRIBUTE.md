@@ -10,6 +10,15 @@ controller. And the vm-vm runs the Rockferry node.
 You could also run all the components locally on your development machine. No need to overcomplicate like me.
 The only requirement for running the node on your own machine is to have kvm on that machine. So, Linux.
 
+## Dependencies
+
+Rockferry is built on libvirt, so naturally libvirt needs to be installed.
+Consult your distros documentation.
+
+The latest version of golang, should be provided by your package manager.
+
+The latest version of node.js and [yarn](https://yarnpkg.com/getting-started/install).
+
 ## Overcomplicated setup
 
 If you run a overcomplicated setup like me, you would need to change some variables. Mainly,
@@ -45,8 +54,16 @@ go run cmd/controller/main.go
 go run cmd/node/main.go
 ```
 
+```sh
+cd ui/
+yarn dev --host
+```
+
+Now open the link provided by the yarn command and you will see the rockferry ui.
+
 These commands will set you up, remember to run the controller first. Or else all hell brakes loose.
 Now you should be up and running. Happy Hacking! Please leave an issue if anything goes wrong.
 
 If you encounter a resource not found error when trying to run the node for the first time, run it again.
 Still have not gotten around to that issue.
+
