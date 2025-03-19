@@ -95,8 +95,7 @@ func (t *TaskList) setResourcePhase(ctx context.Context, original *rockferry.Res
 
 func (t *TaskList) executeBound(ctx context.Context, task BoundTask) {
 	if err := task.Execute(ctx, t.e); err != nil {
-		fmt.Println(reflect.TypeOf(task).Elem().Elem().Name())
-		fmt.Println("task returned error", err)
+		fmt.Println(reflect.TypeOf(task).Elem().Name(), "failed to execute task", err)
 	}
 
 	if err := t.setResourcePhase(ctx, task.Resource(), rockferry.PhaseCreated); err != nil {
