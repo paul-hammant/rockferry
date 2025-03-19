@@ -71,6 +71,29 @@ curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
 sudo -E bash nodesource_setup.sh
 ```
 
+**ISO Pools**
+
+```xml
+<pool type='dir'>
+  <name>isos</name>
+  <source>
+  </source>
+  <target>
+    <path>/var/lib/libvirt/isos</path>
+    <permissions>
+      <mode>0755</mode>
+      <owner>0</owner>
+      <group>0</group>
+    </permissions>
+  </target>
+</pool>
+```
+
+And `virsh pool-define isos-pool.xml`
+
+Then you need to wget some isos you want into /var/lib/libvirt/isos
+
+**Then**
 
 If you desire to chose the easy way. it is as easy as running
 
