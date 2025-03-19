@@ -1,5 +1,12 @@
-import { Badge, Box, Separator, Table, Text } from "@radix-ui/themes";
-import { useQuery } from "@tanstack/react-query";
+import {
+    Badge,
+    Box,
+    IconButton,
+    Separator,
+    Table,
+    Text,
+} from "@radix-ui/themes";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
 import { convert, Units } from "../../utils/conversion";
 import { Resource, ResourceKind } from "../../types/resource";
@@ -12,6 +19,8 @@ import { Volume } from "../../types/volume";
 import { Card } from "@radix-ui/themes/src/index.js";
 import { checkVolumeAllocationStatus } from "../../utils/allocationstatus";
 import { ActionRow } from "./actionrow";
+import { TrashIcon } from "@radix-ui/react-icons";
+import { del } from "../../data/mutations/delete";
 
 const Title: React.FC<{ pool: Resource<Pool>; isDefault: boolean }> = ({
     pool,
@@ -75,6 +84,10 @@ export const PoolView: React.FC<unknown> = () => {
                 id!,
                 ResourceKind.StoragePool,
             ),
+    });
+
+    const { mutate: deleteMutation } = useMutation({
+        mutationFn: del,
     });
 
     if (volumes.isError || pool.isError) {
@@ -178,7 +191,19 @@ export const PoolView: React.FC<unknown> = () => {
                                             {capacity} Gb
                                         </Badge>
                                     </Table.Cell>
-                                    <Table.Cell></Table.Cell>
+                                    <Table.Cell>
+                                        <IconButton
+                                            variant="soft"
+                                            onClick={() => {
+                                                deleteMutation({
+                                                    id: resource.id,
+                                                    kind: resource.kind,
+                                                });
+                                            }}
+                                        >
+                                            <TrashIcon />
+                                        </IconButton>
+                                    </Table.Cell>
                                 </Table.Row>
                             );
                         })}
