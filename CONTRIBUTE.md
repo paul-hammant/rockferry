@@ -44,6 +44,34 @@ need to be changed. You probably also need to adapt the make procedure to fit yo
 
 ## Simple setup.
 
+**Prereqs for recent Ubuntu versions**
+
+```
+sudo apt install -y qemu-kvm libvirt-clients libvirt-daemon-system virtinst bridge-utils curl
+sudo systemctl enable libvirtd
+sudo systemctl start libvirtd
+sudo setfacl -m user:$USER:rw /var/run/libvirt/libvirt-sock
+```
+
+**Go**
+
+```
+rm -rf /usr/local/go && tar -C /usr/local -xzf go1.24.1.linux-amd64.tar.gz
+
+echo '\nexport PATH=$PATH:/usr/local/go/bin\n' >> ~/.profile
+
+# ... and restart terminal
+```
+
+
+**Node 20:**
+
+```
+curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
+sudo -E bash nodesource_setup.sh
+```
+
+
 If you desire to chose the easy way. it is as easy as running
 
 ```sh
