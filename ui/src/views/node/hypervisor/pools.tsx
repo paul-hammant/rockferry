@@ -1,11 +1,12 @@
 import { Resource, ResourceKind } from "../../../types/resource";
 import { Node } from "../../../types/node";
 import { Pool } from "../../../types/pool";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { list } from "../../../data/queries/list";
-import { Badge, Table } from "@radix-ui/themes";
+import { Badge, Button, Table } from "@radix-ui/themes";
 import { convert, Units } from "../../../utils/conversion";
 import { useNavigate } from "react-router";
+import { del } from "../../../data/mutations/delete";
 
 interface Props {
     node: Resource<Node>;
@@ -24,6 +25,10 @@ export const PoolsView: React.FC<Props> = ({ node }) => {
             list<Pool>(ResourceKind.StoragePool, node.id, ResourceKind.Node),
     });
 
+    const { mutate: deleteMutation } = useMutation({
+        mutationFn: del,
+    });
+
     if (isError) {
         return <p>error</p>;
     }
@@ -40,6 +45,15 @@ export const PoolsView: React.FC<Props> = ({ node }) => {
                     <Table.ColumnHeaderCell>Default</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>Usage</Table.ColumnHeaderCell>
                     <Table.ColumnHeaderCell>Backend</Table.ColumnHeaderCell>
+                    <Table.ColumnHeaderCell>
+                        <Button
+                            variant="soft"
+                            style={{ width: "70%" }}
+                            size="1"
+                        >
+                            Add
+                        </Button>
+                    </Table.ColumnHeaderCell>
                 </Table.Row>
             </Table.Header>
 
@@ -86,6 +100,24 @@ export const PoolsView: React.FC<Props> = ({ node }) => {
                             </Table.Cell>
                             <Table.Cell>
                                 <Badge color="amber">{pool.spec!.type}</Badge>
+                            </Table.Cell>
+                            <Table.Cell>
+                                <Button
+                                    color="red"
+                                    variant="soft"
+                                    style={{ width: "70%" }}
+                                    size="1"
+                                    onClick={() => {
+                                        // TODO: This is a little buggy. Since it will navigate
+                                        //       you to the pool view.
+                                        deleteMutation({
+                                            kind: pool.kind,
+                                            id: pool.id,
+                                        });
+                                    }}
+                                >
+                                    Delete
+                                </Button>
                             </Table.Cell>
                         </Table.Row>
                     );
