@@ -50,13 +50,10 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 	disks := []*spec.MachineSpecDisk{}
 
 	for _, disk := range t.Request.Spec.Disks {
-		poolId := disk.Pool
-		pools, err := executor.Rockferry.StoragePools().List(ctx, poolId, nil)
+		pool, err := executor.Rockferry.StoragePools().Get(ctx, disk.Pool, nil)
 		if err != nil {
 			return nil, err
 		}
-
-		pool := pools[0]
 
 		d := new(spec.MachineSpecDisk)
 		d.Key = disk.Key
@@ -87,12 +84,16 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 		}
 	}
 
-	//  TODO: Refer to volume somehow?
-	if t.Request.Spec.Cdrom.Key != "" {
-		// TODO: CDROM can be network disk as well
+	if t.Request.Spec.Cdrom.Volume != "" {
+		volume, err := executor.Rockferry.StorageVolumes().Get(ctx, t.Request.Spec.Cdrom.Volume, nil)
+		if err != nil {
+			return nil, err
+		}
+
 		cdrom := new(spec.MachineSpecDisk)
 
-		cdrom.Key = t.Request.Spec.Cdrom.Key
+		cdrom.Key = volume.Spec.Key
+		cdrom.Volume = volume.Id
 
 		// This could probably be more clean
 		cdrom.File = new(spec.MachineSpecDiskFile)
@@ -100,7 +101,6 @@ func (t *CreateVirtualMachineTask) createVmDisks(ctx context.Context, executor *
 		cdrom.Type = "file"
 
 		disks = append(disks, cdrom)
-
 		rockferry.MachineEnsureUniqueDiskTargets(disks, rockferry.MachineDiskTargetBaseSD)
 	}
 
