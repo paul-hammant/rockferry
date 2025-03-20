@@ -120,6 +120,8 @@ func (t *UpdateVmTask) handleDeleteDisk(ctx context.Context, e *Executor, index 
 			// could not be detached. Restore the object to its previous state.
 
 			// TODO: This causes a sycle which returns to handleCreateDisk...
+			// 		 The cycle should only occur if disk removal fails. And that will
+			// 		 rarely happen, since all disk removals require the vm to be rebooted.
 
 			modified := deepcopy.Copy(t.Prev).(*rockferry.Machine)
 			modified.Status.Errors = append(modified.Status.Errors, err.Error())
