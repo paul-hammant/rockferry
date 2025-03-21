@@ -9,7 +9,7 @@ type MachineRequestSpecDisk struct {
 }
 
 type MachineRequestSpecCdrom struct {
-	Key string `json:"key"`
+	Volume string `json:"volume"`
 }
 
 type MachineRequestSpec struct {

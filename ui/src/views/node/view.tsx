@@ -11,7 +11,7 @@ import {
     Tabs,
     Text,
 } from "@radix-ui/themes";
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { VmsView } from "./vms";
 import { get } from "../../data/queries/get";
 import { useQuery } from "@tanstack/react-query";
@@ -19,46 +19,12 @@ import { Node } from "../../types/node";
 import { Resource, ResourceKind } from "../../types/resource";
 import { CopyIcon } from "@radix-ui/react-icons";
 import { convert, Units } from "../../utils/conversion";
-import { Instance } from "../../types/instance";
 import { getUptime } from "../../utils/uptime";
 import { useTabState } from "../../hooks/tabstate";
 import { HypervisorTab } from "./hypervisor";
 import { Machine, MachineStatus } from "../../types/machine";
 import { list } from "../../data/queries/list";
-
-const Title: React.FC<{ node: Resource<Node> }> = ({ node }) => {
-    const navigate = useNavigate();
-
-    const instance = useQuery({
-        queryKey: [ResourceKind.Instance, "self"],
-        queryFn: () => get<Instance>(node.owner!.id!, node.owner!.kind!),
-    });
-
-    if (instance.isError) {
-        console.log(instance.error);
-        return <p>error</p>;
-    }
-
-    if (instance.isLoading) {
-        return <p>loading</p>;
-    }
-
-    return (
-        <Box>
-            <Text
-                className="hover:cursor-pointer"
-                color="purple"
-                onClick={() => navigate(`/`)}
-            >
-                <Text size="6">{instance.data?.spec?.name}</Text>
-            </Text>
-            <Text size="5" mr="1" ml="1">
-                /
-            </Text>
-            <Text size="6">{node.spec?.hostname}</Text>
-        </Box>
-    );
-};
+import { Breadcrumbs } from "../../components/breadcrumbs";
 
 const NodeMetadata: React.FC<{ node: Resource<Node> }> = ({ node }) => {
     const now = new Date();
@@ -167,7 +133,7 @@ export const NodeView: React.FC<unknown> = () => {
 
     return (
         <Box p="9">
-            <Title node={data.data!} />
+            <Breadcrumbs res={data.data!} />
             <Box pt="3">
                 <Tabs.Root defaultValue={tab}>
                     <Tabs.List>

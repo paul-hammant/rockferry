@@ -10,7 +10,7 @@ export interface NodeInterface {
 }
 
 export interface Node {
-    hostname: string;
+    name: string;
     kernel: string;
     active_machines: number;
     total_machines: number;

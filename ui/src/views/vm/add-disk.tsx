@@ -139,6 +139,9 @@ export const AddDiskView: React.FC<unknown> = () => {
                                             {
                                                 onSuccess: () => {
                                                     setSubmitting(false);
+                                                    navigate(
+                                                        `/${ResourceKind.Machine}/${vm!.id}?tab=devices`,
+                                                    );
                                                 },
                                             },
                                         );
@@ -186,7 +189,7 @@ export const AddDiskView: React.FC<unknown> = () => {
                                             type="button"
                                             onClick={() => {
                                                 navigate(
-                                                    `/vm/${vm!.id}?tab=devices`,
+                                                    `/${ResourceKind.Machine}/${vm!.id}?tab=devices`,
                                                 );
                                             }}
                                         >

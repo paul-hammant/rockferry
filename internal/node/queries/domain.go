@@ -350,7 +350,6 @@ func (c *Client) DomainAddDisk(id string, spec *spec.MachineSpecDisk) error {
 		return err
 	}
 
-	fmt.Println(string(xml))
 	return c.v.DomainAttachDevice(dom, string(xml))
 }
 
@@ -370,7 +369,8 @@ func (c *Client) DomainRemoveDisk(id string, spec *spec.MachineSpecDisk) error {
 		return err
 	}
 
-	fmt.Println(string(xml))
-
-	return c.v.DomainDetachDevice(dom, string(xml))
+	// Only remove a disk after the vm has been rebooted. Saves a lot of headache,
+	// TODO: Could this be done differently? Maybe let the user tell us what
+	// 		 they want perhaps
+	return c.v.DomainDetachDeviceFlags(dom, string(xml), uint32(libvirt.DomainDeviceModifyConfig))
 }

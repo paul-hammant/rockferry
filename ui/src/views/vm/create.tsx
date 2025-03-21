@@ -57,16 +57,12 @@ const VolumeSelect: React.FC<{
                     <Select.Group>
                         <Select.Label>Volumes</Select.Label>
                         {data?.data?.list?.map((resource) => {
-                            const volume = resource!.spec;
-
-                            console.log(volume);
-
                             return (
                                 <Select.Item
-                                    value={volume!.key}
+                                    value={resource.id}
                                     key={resource.id}
                                 >
-                                    {volume?.name}
+                                    {resource.spec?.name}
                                 </Select.Item>
                             );
                         })}
@@ -132,6 +128,8 @@ interface VmCreateValues {
     cdrom_pool: string;
     cdrom_key: string;
 
+    cdrom_volume_id: string;
+
     network: string;
 
     threads: number;
@@ -162,6 +160,7 @@ export const CreateVmView: React.FC<unknown> = () => {
 
                                 cdrom_pool: "",
                                 cdrom_key: "",
+                                cdrom_volume_id: "",
 
                                 threads: 0,
                                 cores: 0,
@@ -192,6 +191,7 @@ export const CreateVmView: React.FC<unknown> = () => {
                                     network: values.network,
                                     cdrom: {
                                         key: values.cdrom_key,
+                                        volume: values.cdrom_volume_id,
                                     },
                                     disks: [
                                         {
@@ -219,11 +219,11 @@ export const CreateVmView: React.FC<unknown> = () => {
                                 mutate(input as any, {
                                     onSuccess: () => {
                                         setSubmitting(false);
-                                        navigate(`/nodes/${id}`);
+                                        navigate(
+                                            `/${ResourceKind.Node}/${id}?tab=vms`,
+                                        );
                                     },
                                 });
-
-                                console.log(values);
                             }}
                         >
                             {({ setFieldValue, values }) => (
@@ -305,7 +305,7 @@ export const CreateVmView: React.FC<unknown> = () => {
                                                         }
                                                         onChange={(v) =>
                                                             setFieldValue(
-                                                                "cdrom_key",
+                                                                "cdrom_volume_id",
                                                                 v,
                                                             )
                                                         }
@@ -389,7 +389,9 @@ export const CreateVmView: React.FC<unknown> = () => {
                                             variant="soft"
                                             type="button"
                                             onClick={() =>
-                                                navigate(`/nodes/${id}?tab=vms`)
+                                                navigate(
+                                                    `/${ResourceKind.Node}/${id}?tab=vms`,
+                                                )
                                             }
                                         >
                                             Cancel

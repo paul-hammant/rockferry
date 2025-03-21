@@ -7,6 +7,7 @@ interface MachineRequestDisk {
 
 interface MachineRequestCdrom {
     key: string;
+    volume: string;
 }
 
 export interface MachineRequest {

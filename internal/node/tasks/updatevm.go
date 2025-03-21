@@ -47,9 +47,17 @@ func (t *UpdateVmTask) handleUpdateState(_ context.Context, e *Executor, change 
 func (t *UpdateVmTask) handleCreateDisk(ctx context.Context, e *Executor, index int) error {
 	disk := t.Machine.Spec.Disks[index]
 
+	// TODO: This is a horrible solution to the cyclic problem described in the function below.
+	//		 but right now it is safe, because we know that no volumes passed to this function
+	// 		 in a normal context would be provided with a key. If a disk has a key that means
+	// 		 it as removed in the previous event.
+	if disk.Key != "" {
+		return nil
+	}
+
 	modified := deepcopy.Copy(t.Machine).(*rockferry.Machine)
 
-	stream, err := e.Rockferry.StorageVolumes().Watch(ctx, rockferry.WatchActionUpdate, "", nil)
+	stream, err := e.Rockferry.StorageVolumes().Watch(ctx, rockferry.WatchActionUpdate, disk.Volume, nil)
 	if err != nil {
 		return err
 	}
@@ -103,9 +111,28 @@ func (t *UpdateVmTask) handleCreateDisk(ctx context.Context, e *Executor, index 
 
 }
 
-func (t *UpdateVmTask) handleDeleteDisk(_ context.Context, e *Executor, index int) error {
+func (t *UpdateVmTask) handleDeleteDisk(ctx context.Context, e *Executor, index int) error {
 	// TODO: Implement
-	return e.Libvirt.DomainRemoveDisk(t.Machine.Id, t.Prev.Spec.Disks[index])
+	err := e.Libvirt.DomainRemoveDisk(t.Machine.Id, t.Prev.Spec.Disks[index])
+
+	if err != nil {
+		if strings.Contains(err.Error(), "cannot be detached") || strings.Contains(err.Error(), "This type of disk cannot be hot unplugged") {
+			// could not be detached. Restore the object to its previous state.
+
+			// TODO: This causes a sycle which returns to handleCreateDisk...
+			// 		 The cycle should only occur if disk removal fails. And that will
+			// 		 rarely happen, since all disk removals require the vm to be rebooted.
+
+			modified := deepcopy.Copy(t.Prev).(*rockferry.Machine)
+			modified.Status.Errors = append(modified.Status.Errors, err.Error())
+
+			return e.Rockferry.Machines().Create(ctx, modified)
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // TODO: This makes me fucking cry. Implement our own powerful diffing library.
@@ -119,10 +146,6 @@ func (t *UpdateVmTask) Execute(ctx context.Context, e *Executor) error {
 	if err != nil {
 		return err
 	}
-
-	// Track disk additions and removals
-	addedDisks := make(map[int]bool)   // Map to store added disk indices
-	removedDisks := make(map[int]bool) // Map to store removed disk indices
 
 	for _, change := range changes {
 		path := strings.Join(change.Path, ".")
@@ -142,9 +165,13 @@ func (t *UpdateVmTask) Execute(ctx context.Context, e *Executor) error {
 
 				// Track added or removed disks
 				if change.Type == "create" {
-					addedDisks[index] = true
+					if err := t.handleCreateDisk(ctx, e, index); err != nil {
+						return err
+					}
 				} else if change.Type == "delete" {
-					removedDisks[index] = true
+					if err := t.handleDeleteDisk(ctx, e, index); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -152,22 +179,6 @@ func (t *UpdateVmTask) Execute(ctx context.Context, e *Executor) error {
 		// Handle other specific changes
 		if change.Type == "update" && path == "Status.State" {
 			return t.handleUpdateState(ctx, e, change)
-		}
-	}
-
-	// Handle disk additions
-	for index := range addedDisks {
-		fmt.Printf("Disk added at index: %d\n", index)
-		if err := t.handleCreateDisk(ctx, e, index); err != nil {
-			return err
-		}
-	}
-
-	// Handle disk removals
-	for index := range removedDisks {
-		fmt.Printf("Disk removed at index: %d\n", index)
-		if err := t.handleDeleteDisk(ctx, e, index); err != nil {
-			return err
 		}
 	}
 

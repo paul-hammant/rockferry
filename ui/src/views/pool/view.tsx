@@ -1,72 +1,18 @@
-import {
-    Badge,
-    Box,
-    IconButton,
-    Separator,
-    Table,
-    Text,
-} from "@radix-ui/themes";
+import { Badge, Box, IconButton, Separator, Table } from "@radix-ui/themes";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
 import { convert, Units } from "../../utils/conversion";
-import { Resource, ResourceKind } from "../../types/resource";
+import { ResourceKind } from "../../types/resource";
 import { list } from "../../data/queries/list";
 import { Pool } from "../../types/pool";
 import { get } from "../../data/queries/get";
-import { useNavigate } from "react-router";
-import { Node } from "../../types/node";
 import { Volume } from "../../types/volume";
 import { Card } from "@radix-ui/themes/src/index.js";
 import { checkVolumeAllocationStatus } from "../../utils/allocationstatus";
 import { ActionRow } from "./actionrow";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { del } from "../../data/mutations/delete";
-
-const Title: React.FC<{ pool: Resource<Pool>; isDefault: boolean }> = ({
-    pool,
-    isDefault,
-}) => {
-    const navigate = useNavigate();
-
-    const node = useQuery({
-        queryKey: [ResourceKind.Node, pool.owner?.id],
-        queryFn: () => get<Node>(pool.owner!.id!, pool.owner!.kind!),
-    });
-
-    if (node.isError) {
-        console.log(node.error);
-        return <p>error</p>;
-    }
-
-    if (node.isLoading) {
-        return <p>loading</p>;
-    }
-
-    return (
-        <Box>
-            <Text
-                className="hover:cursor-pointer"
-                color="purple"
-                onClick={() =>
-                    navigate(
-                        `/nodes/${node.data!.id}?tab=hypervisor&subtab=Pools`,
-                    )
-                }
-            >
-                <Text size="6">{node.data?.spec?.hostname}</Text>
-            </Text>
-            <Text size="5" mr="1" ml="1">
-                /
-            </Text>
-            <Text size="6">{pool.spec?.name}</Text>{" "}
-            {isDefault ? (
-                <Text size="5" weight="light">
-                    (default)
-                </Text>
-            ) : undefined}
-        </Box>
-    );
-};
+import { Breadcrumbs } from "../../components/breadcrumbs";
 
 export const PoolView: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
@@ -110,7 +56,7 @@ export const PoolView: React.FC<unknown> = () => {
 
     return (
         <Box p="9" width="100%">
-            <Title pool={pool.data!} isDefault={isDefault} />
+            <Breadcrumbs res={pool.data!} />
             <Box width="100%" pt="2">
                 <Separator size="4" />
             </Box>

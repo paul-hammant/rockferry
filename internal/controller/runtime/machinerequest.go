@@ -80,7 +80,6 @@ func (r *Runtime) allocateMachineVolumes(ctx context.Context, req *rockferry.Mac
 				}
 
 				if filled {
-					fmt.Println("all disks have a volume")
 					return nil
 				}
 			}

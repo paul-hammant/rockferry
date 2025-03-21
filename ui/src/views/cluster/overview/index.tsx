@@ -18,6 +18,7 @@ import { MachinesTab } from "./machines";
 import { ConfigTab } from "./talosconfig";
 import { useTabState } from "../../../hooks/tabstate";
 import { del } from "../../../data/mutations/delete";
+import { Breadcrumbs } from "../../../components/breadcrumbs";
 
 const DeleteButton: React.FC<{ cluster: Resource<Cluster, ClusterStatus> }> = ({
     cluster,
@@ -94,29 +95,6 @@ const InfoPane: React.FC<{
     );
 };
 
-// TODO: Do not hardcode instance name as rockferry
-const Title: React.FC<{
-    cluster: Resource<Cluster, ClusterStatus>;
-}> = ({ cluster }) => {
-    const navigate = useNavigate();
-
-    return (
-        <Box>
-            <Text
-                className="hover:cursor-pointer"
-                color="purple"
-                onClick={() => navigate(`/`)}
-            >
-                <Text size="6">rockferry</Text>
-            </Text>
-            <Text size="5" mr="1" ml="1">
-                /
-            </Text>
-            <Text size="6">{cluster.spec?.name}</Text>
-        </Box>
-    );
-};
-
 export const ClusterOverview: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
 
@@ -136,7 +114,7 @@ export const ClusterOverview: React.FC<unknown> = () => {
     }
     return (
         <Box p="9" width="100%">
-            <Title cluster={cluster.data!} />
+            <Breadcrumbs res={cluster.data!} />
             <Box pt="3">
                 <Tabs.Root defaultValue={tab}>
                     <Tabs.List>
