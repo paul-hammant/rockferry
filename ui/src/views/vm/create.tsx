@@ -219,11 +219,11 @@ export const CreateVmView: React.FC<unknown> = () => {
                                 mutate(input as any, {
                                     onSuccess: () => {
                                         setSubmitting(false);
-                                        navigate(`/nodes/${id}`);
+                                        navigate(
+                                            `/${ResourceKind.Node}/${id}?tab=vms`,
+                                        );
                                     },
                                 });
-
-                                console.log(values);
                             }}
                         >
                             {({ setFieldValue, values }) => (
@@ -389,7 +389,9 @@ export const CreateVmView: React.FC<unknown> = () => {
                                             variant="soft"
                                             type="button"
                                             onClick={() =>
-                                                navigate(`/nodes/${id}?tab=vms`)
+                                                navigate(
+                                                    `/${ResourceKind.Node}/${id}?tab=vms`,
+                                                )
                                             }
                                         >
                                             Cancel

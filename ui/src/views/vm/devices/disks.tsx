@@ -63,7 +63,11 @@ const DiskView: React.FC<DiskViewProps> = ({ disk, vm }) => {
                     <Table.RowHeaderCell>
                         <Text
                             className="hover:cursor-pointer"
-                            onClick={() => navigate(`/pools/${owner.id}`)}
+                            onClick={() =>
+                                navigate(
+                                    `/${ResourceKind.StoragePool}/${owner.id}`,
+                                )
+                            }
                         >
                             {disk.volume.split("/")[1]}
                         </Text>
@@ -90,7 +94,11 @@ const DiskView: React.FC<DiskViewProps> = ({ disk, vm }) => {
                         <Text
                             className="hover:cursor-pointer"
                             color="purple"
-                            onClick={() => navigate(`/pools/${owner.id}`)}
+                            onClick={() =>
+                                navigate(
+                                    `/${ResourceKind.StoragePool}/${owner.id}`,
+                                )
+                            }
                         >
                             {owner.spec?.name}
                         </Text>
@@ -103,15 +111,10 @@ const DiskView: React.FC<DiskViewProps> = ({ disk, vm }) => {
                             color="red"
                             size="1"
                             onClick={() => {
-                                console.log("deleting");
-                                console.log(vm);
-
                                 const observer =
                                     jsonpatch.observe<
                                         Resource<Machine, MachineStatus>
                                     >(vm);
-
-                                console.log("after observer");
 
                                 const index = vm.spec?.disks.indexOf(disk);
                                 if (-1 >= index!) {
@@ -121,11 +124,7 @@ const DiskView: React.FC<DiskViewProps> = ({ disk, vm }) => {
 
                                 vm.spec?.disks.splice(index!, 1);
 
-                                console.log(vm);
-
                                 const patches = jsonpatch.generate(observer);
-
-                                console.log("patching");
 
                                 patchMutation({
                                     id: vm.id,
@@ -163,7 +162,9 @@ export const DisksView: React.FC<Props> = ({ vm }) => {
                             size="1"
                             style={{ width: "70%" }}
                             onClick={() => {
-                                navigate(`/vm/${vm.id}/add-disk`);
+                                navigate(
+                                    `/${ResourceKind.Machine}/${vm.id}/add-disk`,
+                                );
                             }}
                         >
                             Add

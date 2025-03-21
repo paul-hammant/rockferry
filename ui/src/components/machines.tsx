@@ -1,5 +1,5 @@
 import { Badge, Table } from "@radix-ui/themes";
-import { Resource } from "../types/resource";
+import { Resource, ResourceKind } from "../types/resource";
 import { Machine, MachineStatus } from "../types/machine";
 import { useNavigate } from "react-router";
 import { convert, Units } from "../utils/conversion";
@@ -51,7 +51,10 @@ export const MachineRow: React.FC<MachineRowProps> = ({ vm, role }) => {
     );
 
     return (
-        <Table.Row key={vm.id} onClick={() => navigate(`/vm/${vm.id!}`)}>
+        <Table.Row
+            key={vm.id}
+            onClick={() => navigate(`/${ResourceKind.Machine}/${vm.id!}`)}
+        >
             {role != undefined ? (
                 <Table.RowHeaderCell>
                     <Badge>{role}</Badge>

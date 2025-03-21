@@ -35,6 +35,8 @@ import * as jsonpatch from "fast-json-patch";
 import { patch } from "../../data/mutations/patch";
 import { del } from "../../data/mutations/delete";
 import { WithOwner } from "../../components/withowner";
+import { Instance } from "../../types/instance";
+import { Breadcrumbs } from "../../components/breadcrumbs";
 
 // TODO: react-toastify sucks ass
 
@@ -85,29 +87,6 @@ const DeleteButton: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
         >
             Delete
         </Button>
-    );
-};
-
-const Title: React.FC<{
-    vm: Resource<Machine, MachineStatus>;
-    node: Resource<Node>;
-}> = ({ vm, node }) => {
-    const navigate = useNavigate();
-
-    return (
-        <Box>
-            <Text
-                className="hover:cursor-pointer"
-                color="purple"
-                onClick={() => navigate(`/nodes/${node.id}?tab=vms`)}
-            >
-                <Text size="6">{node.spec?.hostname}</Text>
-            </Text>
-            <Text size="5" mr="1" ml="1">
-                /
-            </Text>
-            <Text size="6">{vm.spec?.name}</Text>
-        </Box>
     );
 };
 
@@ -216,6 +195,7 @@ const VmMetadata: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
 
 export const VmOverview: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
 
     const [tab, setTab] = useTabState("overview");
 
@@ -240,7 +220,7 @@ export const VmOverview: React.FC<unknown> = () => {
         <WithOwner<Node> res={vm!}>
             {({ owner: node }) => (
                 <Box p="9" width="100%">
-                    <Title vm={vm!} node={node!} />
+                    <Breadcrumbs res={vm!} />
                     <Box pt="3">
                         <Tabs.Root defaultValue={tab}>
                             <Tabs.List>

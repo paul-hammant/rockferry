@@ -14,6 +14,7 @@ import { ClusterOverview } from "./views/cluster/overview";
 import { ConsoleFullscreen } from "./views/vm/console-fullscreen";
 import { Livedata } from "./livedata";
 import { AddDiskView } from "./views/vm/add-disk";
+import { ResourceKind } from "./types/resource";
 
 const queryClient = new QueryClient();
 
@@ -31,28 +32,38 @@ function App() {
                                 element={<CreateClusterView />}
                             />
                             <Route
-                                path="/cluster/:id"
+                                path={`${ResourceKind.Cluster}/:id`}
                                 element={<ClusterOverview />}
                             />
 
-                            <Route path="vm/:id" element={<VmOverview />} />
                             <Route
-                                path="vm/:id/console-fullscreen"
+                                path={`${ResourceKind.Machine}/:id`}
+                                element={<VmOverview />}
+                            />
+                            <Route
+                                path={`${ResourceKind.Machine}/:id/console-fullscreen`}
                                 element={<ConsoleFullscreen />}
                             />
                             <Route
-                                path="vm/:id/add-disk"
+                                path={`${ResourceKind.Machine}/:id/add-disk`}
                                 element={<AddDiskView />}
                             />
-                            <Route path="nodes/:id" element={<NodeView />} />
+
                             <Route
-                                path="nodes/:id/create-vm"
+                                path={`${ResourceKind.Node}/:id`}
+                                element={<NodeView />}
+                            />
+                            <Route
+                                path={`${ResourceKind.Node}/:id/create-vm`}
                                 element={<CreateVmView />}
                             />
 
-                            <Route path="pools/:id" element={<PoolView />} />
                             <Route
-                                path="pools/:id/create-volume"
+                                path={`${ResourceKind.StoragePool}/:id`}
+                                element={<PoolView />}
+                            />
+                            <Route
+                                path={`${ResourceKind.StoragePool}/:id/create-volume`}
                                 element={<CreateVolumeView />}
                             />
 

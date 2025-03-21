@@ -18,6 +18,7 @@ import { CopyIcon } from "@radix-ui/react-icons";
 import { NodesTab } from "./nodes";
 import { ClustersTab } from "./clusters";
 import { useTabState } from "../../hooks/tabstate";
+import { Breadcrumbs } from "../../components/breadcrumbs";
 
 export const Overview: React.FC<unknown> = () => {
     const data = useQuery({
@@ -41,7 +42,7 @@ export const Overview: React.FC<unknown> = () => {
 
     return (
         <Box p="9">
-            <Text size="6">{data.data?.spec?.name}</Text>
+            <Breadcrumbs res={data.data!} />
             <Box pt="3">
                 <Tabs.Root defaultValue={tab}>
                     <Tabs.List>
