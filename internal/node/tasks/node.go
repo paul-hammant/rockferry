@@ -87,7 +87,7 @@ func (t *SyncNodeTask) Execute(ctx context.Context, e *Executor) error {
 
 	modified := deepcopy.Copy(node).(*rockferry.Node)
 
-	modified.Spec.Hostname, _ = os.Hostname()
+	modified.Spec.Name, _ = os.Hostname()
 
 	modified.Spec.ActiveMachines = 2
 	modified.Spec.TotalMachines = 10

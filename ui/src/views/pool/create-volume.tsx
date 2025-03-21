@@ -63,7 +63,12 @@ export const CreateVolumeView: React.FC<unknown> = () => {
                                 };
 
                                 mutate(input, {
-                                    onSuccess: () => setSubmitting(false),
+                                    onSuccess: () => {
+                                        setSubmitting(false);
+                                        navigate(
+                                            `${ResourceKind.StoragePool}/${poolId}`,
+                                        );
+                                    },
                                 });
                             }}
                         >
@@ -112,7 +117,9 @@ export const CreateVolumeView: React.FC<unknown> = () => {
                                             color="red"
                                             type="button"
                                             onClick={() => {
-                                                navigate(`/pools/${poolId}`);
+                                                navigate(
+                                                    `/${ResourceKind.StoragePool}/${poolId}`,
+                                                );
                                             }}
                                         >
                                             Cancel

@@ -82,7 +82,9 @@ export const ActionRow: React.FC<Props> = ({ pool }) => {
                         variant="soft"
                         color="purple"
                         onClick={() =>
-                            navigate(`/pools/${pool.id!}/create-volume`)
+                            navigate(
+                                `/${ResourceKind.StoragePool}/${pool.id!}/create-volume`,
+                            )
                         }
                     >
                         Create
@@ -92,7 +94,9 @@ export const ActionRow: React.FC<Props> = ({ pool }) => {
                         variant="soft"
                         color="purple"
                         onClick={() =>
-                            navigate(`/pools/${pool.id!}/upload-volume`)
+                            navigate(
+                                `/${ResourceKind.StoragePool}/${pool.id!}/upload-volume`,
+                            )
                         }
                     >
                         Upload

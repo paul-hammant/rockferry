@@ -33,7 +33,9 @@ export const VmsView: React.FC<Props> = ({ id }) => {
         <>
             <Button
                 variant="soft"
-                onClick={() => navigate(`/nodes/${id}/create-vm`)}
+                onClick={() =>
+                    navigate(`/${ResourceKind.Node}/${id}/create-vm`)
+                }
             >
                 Create
             </Button>

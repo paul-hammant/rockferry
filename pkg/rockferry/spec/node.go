@@ -14,9 +14,9 @@ type NodeInterfaceSpec struct {
 type NodeSpec struct {
 	Topology Topology `json:"topology"`
 
-	Hostname string `json:"hostname"`
-	Kernel   string `json:"kernel"`
-	Uptime   int64  `json:"uptime"`
+	Name   string `json:"name"`
+	Kernel string `json:"kernel"`
+	Uptime int64  `json:"uptime"`
 
 	Interfaces []*NodeInterfaceSpec `json:"interfaces"`
 
