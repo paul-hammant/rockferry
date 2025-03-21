@@ -35,7 +35,6 @@ import * as jsonpatch from "fast-json-patch";
 import { patch } from "../../data/mutations/patch";
 import { del } from "../../data/mutations/delete";
 import { WithOwner } from "../../components/withowner";
-import { Instance } from "../../types/instance";
 import { Breadcrumbs } from "../../components/breadcrumbs";
 
 // TODO: react-toastify sucks ass
@@ -195,7 +194,6 @@ const VmMetadata: React.FC<{ vm: Resource<Machine, MachineStatus> }> = ({
 
 export const VmOverview: React.FC<unknown> = () => {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
 
     const [tab, setTab] = useTabState("overview");
 
